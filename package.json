@@ -1,0 +1,15 @@
+{
+  "name": "estercheck",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Responsive €STR dashboard using official European Central Bank data",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test": "node --test",
+    "update-data": "node scripts/update-estr.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
