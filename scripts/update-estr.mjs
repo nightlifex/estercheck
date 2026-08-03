@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 export const SERIES_KEY = "EST.B.EU000A2X2A25.WT";
 export const API_URL =
-  "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?format=csvdata&lastNObservations=400";
+  "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?format=csvdata";
 export const SERIES_URL = "https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT";
 export const OFFICIAL_PAGE_URL =
   "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html";
@@ -95,7 +95,7 @@ export function parsePublicationPage(html) {
       .replace(/\s+/g, " "),
   );
   const publicationMatch = text.match(
-    /last update:\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+\d{1,2}:\d{2}/i,
+    /last update:\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2}):(\d{2})/i,
   );
   const referenceMatch = text.match(/Reference date\s*\|?\s*(\d{2})-(\d{2})-(\d{4})/i);
   const rateMatch = text.match(/Rate\s*\|?\s*(-?\d+(?:[.,]\d+)?)/i);
@@ -107,6 +107,7 @@ export function parsePublicationPage(html) {
 
   return {
     publicationDate: `${publicationMatch[3]}-${month}-${publicationMatch[1].padStart(2, "0")}`,
+    publicationTime: `${publicationMatch[4].padStart(2, "0")}:${publicationMatch[5]}`,
     referenceDate: `${referenceMatch[3]}-${referenceMatch[2]}-${referenceMatch[1]}`,
     rate: round(Number.parseFloat(rateMatch[1].replace(",", "."))),
   };
@@ -140,9 +141,9 @@ function monthNumber(monthName) {
 }
 
 export function classifyRate(rate) {
-  if (rate > 0.05) return "positive";
-  if (rate < -0.05) return "negative";
-  return "near-zero";
+  if (rate < 0.015) return "negative-after-costs";
+  if (rate <= 0.25) return "very-low";
+  return "positive";
 }
 
 export function buildDataset(observations, publication = null, existing = null) {
@@ -161,6 +162,11 @@ export function buildDataset(observations, publication = null, existing = null) 
     : existing?.referenceDate === latest.date
       ? existing.publicationDate
       : latest.date;
+  const publicationTime = pageMatchesLatest
+    ? publication.publicationTime
+    : existing?.referenceDate === latest.date
+      ? existing.publicationTime ?? null
+      : null;
 
   return {
     schemaVersion: 1,
@@ -173,6 +179,7 @@ export function buildDataset(observations, publication = null, existing = null) 
     },
     unit: "percent",
     publicationDate,
+    publicationTime,
     referenceDate: latest.date,
     current: {
       rate: latest.rate,
