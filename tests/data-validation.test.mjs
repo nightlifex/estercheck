@@ -10,7 +10,10 @@ test("committed €STR data is internally consistent", async () => {
 
   assert.equal(dataset.seriesKey, "EST.B.EU000A2X2A25.WT");
   assert.equal(dataset.unit, "percent");
-  assert.ok(observations.length >= 2);
+  assert.ok(observations.length > 1_000);
+  assert.equal(observations[0].date, "2019-10-01");
+  assert.match(dataset.publicationTime, /^\d{2}:\d{2}$/);
+  assert.doesNotMatch(dataset.source.apiUrl, /lastNObservations/i);
 
   const dates = observations.map((item) => item.date);
   assert.deepEqual(dates, [...dates].sort());

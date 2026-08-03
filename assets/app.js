@@ -1,4 +1,5 @@
 const DATA_URL = "data/estr.json";
+const CACHE_KEY = "estercheck:last-valid-dataset:v1";
 const ETF_SPREAD_PERCENTAGE_POINTS = 0.085;
 const ETF_COST_PERCENTAGE_POINTS = 0.1;
 
@@ -24,6 +25,9 @@ const state = {
 const elements = {
   content: document.querySelector("#dashboard-content"),
   errorPanel: document.querySelector("#error-panel"),
+  errorTitle: document.querySelector("#error-title"),
+  errorCopy: document.querySelector("#error-copy"),
+  errorLastSuccess: document.querySelector("#error-last-success"),
   retryButton: document.querySelector("#retry-button"),
   currentRate: document.querySelector("#current-rate"),
   referenceDate: document.querySelector("#reference-date"),
@@ -36,6 +40,7 @@ const elements = {
   previousRate: document.querySelector("#previous-rate"),
   estimatedYield: document.querySelector("#estimated-yield"),
   dataStatus: document.querySelector("#data-status"),
+  dataUpdatedAt: document.querySelector("#data-updated-at"),
   chart: document.querySelector("#chart"),
   chartPeriod: document.querySelector("#chart-period"),
   historyTable: document.querySelector("#history-table"),
@@ -47,48 +52,53 @@ function parseDate(dateString) {
 }
 
 function formatDate(dateString) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateString))) return "—";
+  if (Number.isNaN(parseDate(dateString).getTime())) return "—";
   return dateFormatter.format(parseDate(dateString));
 }
 
 function formatRate(value) {
-  return Number(value).toLocaleString("de-DE", {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "—";
+  return numericValue.toLocaleString("de-DE", {
     minimumFractionDigits: 3,
     maximumFractionDigits: 3,
   });
 }
 
 function formatChange(value) {
+  if (!Number.isFinite(value)) return "—";
   const sign = value > 0 ? "+" : value < 0 ? "−" : "±";
   return `${sign}${formatRate(Math.abs(value))} %-Pkt.`;
 }
 
 function classifyRate(rate) {
-  if (rate > 0.05) {
-    return {
-      key: "positive",
-      label: "Positiver Zins",
-      title: "Der €STR ist positiv.",
-      copy: "Kurzfristige Euro-Geldmarktanlagen bewegen sich damit in einem positiven Zinsumfeld.",
-      marker: 88,
-    };
-  }
-
-  if (rate < -0.05) {
+  if (rate < 0.015) {
     return {
       key: "negative",
-      label: "Negativer Zins",
-      title: "Der €STR ist negativ.",
-      copy: "Der Tagesgeldsatz liegt unter null. Kurzfristige Geldmarktanlagen können dadurch belastet werden.",
+      label: "Voraussichtlich negativ",
+      title: "Voraussichtlich negative Rendite nach Fondskosten.",
+      copy: "Unter 0,015 % können die laufenden Fondskosten den vereinfachten Renditevorteil voraussichtlich vollständig aufzehren.",
       marker: 12,
     };
   }
 
+  if (rate <= 0.25) {
+    return {
+      key: "low",
+      label: "Sehr geringe Rendite",
+      title: "Die laufende Rendite ist sehr gering.",
+      copy: "Zwischen 0,015 % und 0,25 % bleibt nach der vereinfachten Kostenschätzung nur ein geringer laufender Renditebeitrag.",
+      marker: 50,
+    };
+  }
+
   return {
-    key: "neutral",
-    label: "Nahe null",
-    title: "Der €STR liegt nahe null.",
-    copy: "Das kurzfristige Zinsumfeld ist weitgehend neutral. Kleine Kosten können die Rendite bereits aufzehren.",
-    marker: 50,
+    key: "positive",
+    label: "Positive Rendite",
+    title: "Die laufende Rendite ist positiv.",
+    copy: "Über 0,25 % bleibt nach der vereinfachten Kostenschätzung ein positiver laufender Renditebeitrag.",
+    marker: 88,
   };
 }
 
@@ -97,10 +107,19 @@ function validateDataset(dataset) {
     throw new Error("Die Datendatei enthält nicht genügend Beobachtungen.");
   }
 
+  if (formatDate(dataset.publicationDate) === "—") {
+    throw new Error("Die Datendatei enthält kein gültiges Veröffentlichungsdatum.");
+  }
+
+  let previousDate = "";
   for (const observation of dataset.observations) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(observation.date) || !Number.isFinite(observation.rate)) {
       throw new Error("Die Datendatei enthält eine ungültige Beobachtung.");
     }
+    if (observation.date <= previousDate) {
+      throw new Error("Die Beobachtungen sind nicht eindeutig chronologisch sortiert.");
+    }
+    previousDate = observation.date;
   }
 
   return dataset;
@@ -117,12 +136,56 @@ async function loadData() {
     }
 
     state.dataset = validateDataset(await response.json());
+    cacheDataset(state.dataset);
     renderDashboard();
     setLoading(false);
   } catch (error) {
     console.error("€STR-Daten konnten nicht geladen werden:", error);
+    if (!state.dataset) state.dataset = readCachedDataset();
+    if (state.dataset) renderDashboard();
+    showLoadError(Boolean(state.dataset));
     setLoading(false, true);
   }
+}
+
+function cacheDataset(dataset) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(dataset));
+  } catch {
+    // The dashboard remains fully functional when browser storage is unavailable.
+  }
+}
+
+function readCachedDataset() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? validateDataset(JSON.parse(cached)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function formatSuccessfulUpdate(dataset) {
+  const date = formatDate(dataset?.publicationDate);
+  if (date === "—") return null;
+  const time = /^\d{2}:\d{2}$/.test(dataset?.publicationTime)
+    ? `, ${dataset.publicationTime} Uhr`
+    : "";
+  return `${date}${time} (EZB-Veröffentlichung)`;
+}
+
+function showLoadError(hasFallback) {
+  const lastSuccess = hasFallback ? formatSuccessfulUpdate(state.dataset) : null;
+  elements.errorTitle.textContent = hasFallback
+    ? "Neue Daten konnten nicht geladen werden"
+    : "Daten derzeit nicht verfügbar";
+  elements.errorCopy.textContent = hasFallback
+    ? "Angezeigt wird weiterhin der letzte gültige Datenstand. Du kannst die Aktualisierung erneut versuchen."
+    : "Die Datendatei ist derzeit nicht erreichbar oder enthält keine gültigen Werte. Bitte versuche es später erneut.";
+  elements.errorLastSuccess.hidden = !lastSuccess;
+  elements.errorLastSuccess.textContent = lastSuccess
+    ? `Letzte erfolgreiche Aktualisierung: ${lastSuccess}`
+    : "";
 }
 
 function setLoading(isLoading, hasError = false) {
@@ -150,7 +213,11 @@ function renderDashboard() {
   elements.referenceDate.textContent = formatDate(latest.date);
   elements.publicationDate.textContent = formatDate(publicationDate);
   elements.marketStatus.className = `status-pill ${
-    classification.key === "negative" ? "status-negative" : ""
+    classification.key === "negative"
+      ? "status-negative"
+      : classification.key === "low"
+        ? "status-low"
+        : ""
   }`;
   elements.marketStatus.innerHTML = `<span class="status-indicator" aria-hidden="true"></span>${classification.label}`;
 
@@ -163,7 +230,11 @@ function renderDashboard() {
   elements.dailyChange.classList.toggle("value-negative", change < 0);
   elements.previousRate.textContent = `Vorheriger €STR: ${formatRate(previous.rate)} %`;
   elements.estimatedYield.textContent = `${formatRate(estimatedYield)} %`;
-  elements.dataStatus.textContent = "Offiziell aktualisiert";
+  elements.dataStatus.textContent = "Automatisch täglich aktualisiert";
+  const lastSuccessfulUpdate = formatSuccessfulUpdate(state.dataset);
+  elements.dataUpdatedAt.textContent = lastSuccessfulUpdate
+    ? `Letzter erfolgreicher Stand: ${lastSuccessfulUpdate}`
+    : "Letzter erfolgreicher Stand: nicht verfügbar";
 
   renderChart();
   renderTable(observations);
@@ -261,6 +332,18 @@ function renderChart() {
   svg.append(createSvg("path", { d: areaPath, class: "chart-area" }));
   svg.append(createSvg("path", { d: linePath, class: "chart-line" }));
 
+  const hoverLine = createSvg("line", {
+    y1: margin.top,
+    y2: margin.top + plotHeight,
+    class: "chart-hover-line",
+    visibility: "hidden",
+  });
+  const hoverPoint = createSvg("circle", {
+    r: 6,
+    class: "chart-hover-point",
+    visibility: "hidden",
+  });
+
   const pointIndexes = new Set([0, observations.length - 1]);
   if (observations.length <= 12) {
     observations.forEach((_, index) => pointIndexes.add(index));
@@ -287,7 +370,88 @@ function renderChart() {
     svg.append(label);
   });
 
-  elements.chart.replaceChildren(svg);
+  svg.append(
+    createSvg("rect", {
+      x: margin.left,
+      y: margin.top,
+      width: plotWidth,
+      height: plotHeight,
+      class: "chart-hit-area",
+    }),
+    hoverLine,
+    hoverPoint,
+  );
+
+  const tooltip = document.createElement("div");
+  const tooltipDate = document.createElement("strong");
+  const tooltipValue = document.createElement("span");
+  const tooltipChange = document.createElement("span");
+  tooltip.className = "chart-tooltip";
+  tooltip.setAttribute("role", "status");
+  tooltip.setAttribute("aria-live", "polite");
+  tooltip.hidden = true;
+  tooltip.append(tooltipDate, tooltipValue, tooltipChange);
+
+  const fullObservations = state.dataset.observations;
+  const firstObservationIndex = fullObservations.findIndex(
+    (observation) => observation.date === observations[0].date,
+  );
+
+  const hideTooltip = () => {
+    hoverLine.setAttribute("visibility", "hidden");
+    hoverPoint.setAttribute("visibility", "hidden");
+    tooltip.hidden = true;
+  };
+
+  const showTooltip = (event) => {
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width || !Number.isFinite(event.clientX)) return;
+
+    const svgX = ((event.clientX - rect.left) / rect.width) * width;
+    if (svgX < margin.left || svgX > width - margin.right) {
+      hideTooltip();
+      return;
+    }
+
+    const ratio = (svgX - margin.left) / plotWidth;
+    const index = Math.max(
+      0,
+      Math.min(observations.length - 1, Math.round(ratio * (observations.length - 1))),
+    );
+    const observation = observations[index];
+    const [px, py] = points[index];
+    const previous = fullObservations[firstObservationIndex + index - 1];
+    const change = previous ? Number((observation.rate - previous.rate).toFixed(3)) : null;
+
+    hoverLine.setAttribute("x1", px);
+    hoverLine.setAttribute("x2", px);
+    hoverLine.setAttribute("visibility", "visible");
+    hoverPoint.setAttribute("cx", px);
+    hoverPoint.setAttribute("cy", py);
+    hoverPoint.setAttribute("visibility", "visible");
+
+    tooltipDate.textContent = formatDate(observation.date);
+    tooltipValue.textContent = `€STR: ${formatRate(observation.rate)} %`;
+    tooltipChange.textContent = Number.isFinite(change)
+      ? `Zum vorherigen Wert: ${formatChange(change)}`
+      : "Erster Wert im verfügbaren Verlauf";
+    tooltip.hidden = false;
+
+    const chartRect = elements.chart.getBoundingClientRect();
+    const left = rect.left - chartRect.left + (px / width) * rect.width;
+    const top = rect.top - chartRect.top + (py / height) * rect.height;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.classList.toggle("align-left", left < 120);
+    tooltip.classList.toggle("align-right", left > chartRect.width - 120);
+    tooltip.classList.toggle("below", top < 105);
+  };
+
+  svg.addEventListener("pointermove", showTooltip);
+  svg.addEventListener("pointerdown", showTooltip);
+  svg.addEventListener("pointerleave", hideTooltip);
+
+  elements.chart.replaceChildren(svg, tooltip);
   elements.chart.setAttribute(
     "aria-label",
     `Historischer Verlauf des €STR von ${formatDate(observations[0].date)} bis ${formatDate(

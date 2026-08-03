@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  API_URL,
   buildDataset,
   classifyRate,
   observationsFromCsv,
@@ -41,6 +42,7 @@ test("parsePublicationPage extracts the official dates and rate", () => {
 
   assert.deepEqual(parsePublicationPage(html), {
     publicationDate: "2026-08-03",
+    publicationTime: "08:00",
     referenceDate: "2026-07-31",
     rate: 2.184,
   });
@@ -53,12 +55,14 @@ test("buildDataset calculates change and estimated ETF net yield", () => {
   ];
   const publication = {
     publicationDate: "2026-08-03",
+    publicationTime: "08:00",
     referenceDate: "2026-07-31",
     rate: 2.184,
   };
   const dataset = buildDataset(observations, publication);
 
   assert.equal(dataset.publicationDate, "2026-08-03");
+  assert.equal(dataset.publicationTime, "08:00");
   assert.equal(dataset.current.changePercentagePoints, -0.001);
   assert.equal(dataset.current.estimatedNetYield, 2.169);
   assert.equal(dataset.current.classification, "positive");
@@ -78,8 +82,14 @@ test("buildDataset does not use a publication date that belongs to another obser
   assert.equal(buildDataset(observations, stalePublication).publicationDate, "2026-07-31");
 });
 
-test("classifyRate covers positive, near-zero and negative values", () => {
-  assert.equal(classifyRate(2.184), "positive");
-  assert.equal(classifyRate(0.02), "near-zero");
-  assert.equal(classifyRate(-0.25), "negative");
+test("classifyRate applies the ETF-cost thresholds including their boundaries", () => {
+  assert.equal(classifyRate(0.014), "negative-after-costs");
+  assert.equal(classifyRate(0.015), "very-low");
+  assert.equal(classifyRate(0.25), "very-low");
+  assert.equal(classifyRate(0.251), "positive");
+});
+
+test("ECB API URL requests the complete official history", () => {
+  assert.match(API_URL, /format=csvdata/);
+  assert.doesNotMatch(API_URL, /lastNObservations/i);
 });

@@ -22,6 +22,7 @@
       </a>
       <a
         class="source-link"
+        aria-label="Offizielle EZB-Daten"
         href="https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT"
         target="_blank"
         rel="noreferrer"
@@ -38,18 +39,42 @@
           <h1 id="page-title">Der Tagesgeldsatz<br />der Eurozone.</h1>
         </div>
         <p class="intro-copy">
-          Der €STR bildet die unbesicherten Übernacht-Kreditkosten von Banken im Euroraum ab.
-          Offiziell veröffentlicht von der Europäischen Zentralbank.
+          Der €STR zeigt, zu welchen Zinssätzen Banken im Euroraum über Nacht Geld aufnehmen. Er
+          beeinflusst indirekt Geldmarkt-ETFs und Tagesgeldangebote.
         </p>
       </section>
 
+      <aside class="trust-bar" aria-label="Transparenz und Datenherkunft">
+        <span class="trust-item">
+          <span class="source-dot" aria-hidden="true"></span>
+          Automatisch täglich aktualisiert
+        </span>
+        <a
+          class="trust-item"
+          href="https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT"
+          target="_blank"
+          rel="noreferrer"
+          >Verwendete EZB-Zeitreihe</a
+        >
+        <a
+          class="trust-item"
+          href="https://github.com/nightlifex/estercheck"
+          target="_blank"
+          rel="noreferrer"
+          >GitHub-Repository</a
+        >
+        <span class="trust-item trust-note">
+          Unabhängig – keine Verbindung zur EZB oder zu Xtrackers
+        </span>
+      </aside>
+
       <div id="error-panel" class="error-panel" role="alert" hidden>
         <div>
-          <strong>Daten derzeit nicht verfügbar</strong>
-          <p>
-            Die aktuellen EZB-Daten konnten nicht geladen werden. Bitte prüfe deine Verbindung
-            oder versuche es gleich noch einmal.
+          <strong id="error-title">Daten derzeit nicht verfügbar</strong>
+          <p id="error-copy">
+            Die Datendatei ist derzeit nicht erreichbar oder enthält keine gültigen Werte.
           </p>
+          <p id="error-last-success" class="error-last-success" hidden></p>
         </div>
         <button id="retry-button" class="button button-secondary" type="button">
           Erneut versuchen
@@ -93,8 +118,8 @@
               </p>
             </div>
             <div class="signal-scale" aria-hidden="true">
-              <span>Negativ</span>
-              <span>Nahe null</span>
+              <span>Vsl. negativ</span>
+              <span>Sehr gering</span>
               <span>Positiv</span>
               <div class="scale-track">
                 <span id="scale-marker" class="scale-marker" style="left: 50%"></span>
@@ -127,7 +152,9 @@
             <div>
               <p class="metric-label">Datenstatus</p>
               <p id="data-status" class="metric-value metric-value-small skeleton-text">—</p>
-              <p class="metric-note">TARGET-Geschäftstage, Veröffentlichung i. d. R. 08:00 Uhr</p>
+              <p id="data-updated-at" class="metric-note">
+                TARGET-Geschäftstage, Veröffentlichung i. d. R. 08:00 Uhr
+              </p>
             </div>
           </article>
         </section>
@@ -142,6 +169,7 @@
               <button type="button" data-range="30">30 T</button>
               <button type="button" data-range="90">3 M</button>
               <button type="button" data-range="365" class="active" aria-pressed="true">1 J</button>
+              <button type="button" data-range="1826">5 J</button>
               <button type="button" data-range="all">Max</button>
             </div>
           </div>
@@ -191,24 +219,38 @@
             <p class="card-kicker">Zur Datenquelle</p>
             <h2>Direkt aus dem ECB Data Portal.</h2>
             <p>
-              Verwendet wird ausschließlich die offizielle EZB-Zeitreihe
-              <code>EST.B.EU000A2X2A25.WT</code>. An Wochenenden und TARGET-Feiertagen kann der
-              zuletzt veröffentlichte Wert unverändert bleiben.
+              Verwendet wird ausschließlich die
+              <a
+                href="https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT"
+                target="_blank"
+                rel="noreferrer"
+                >offizielle EZB-Zeitreihe <code>EST.B.EU000A2X2A25.WT</code></a
+              >. An Wochenenden und TARGET-Feiertagen kann der zuletzt veröffentlichte Wert
+              unverändert bleiben.
             </p>
           </article>
         </section>
       </section>
+
+      <aside class="legal-notice" aria-label="Wichtiger Hinweis">
+        Vereinfachte Schätzung vor Steuern, Spread und Handelskosten. Keine tatsächliche oder
+        garantierte Fondsrendite. Keine Anlageberatung.
+      </aside>
     </main>
 
     <footer class="site-footer">
       <p>€STR Monitor <span aria-hidden="true">·</span> Unabhängige Visualisierung</p>
       <p>
-        Quelle:
+        Quellen und Projekt:
         <a
           href="https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html"
           target="_blank"
           rel="noreferrer"
           >Europäische Zentralbank</a
+        >
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/nightlifex/estercheck" target="_blank" rel="noreferrer"
+          >GitHub</a
         >
       </p>
     </footer>
