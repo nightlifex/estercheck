@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Aktueller Euro Short-Term Rate (€STR), historische Entwicklung und eine grobe Geldmarkt-ETF-Renditeschätzung."
+    />
+    <title>€STR Monitor — Euro Short-Term Rate</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
+
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="€STR Monitor – Startseite">
+        <span class="brand-mark" aria-hidden="true">€</span>
+        <span>STR Monitor</span>
+      </a>
+      <a
+        class="source-link"
+        href="https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span class="source-dot" aria-hidden="true"></span>
+        Offizielle EZB-Daten
+      </a>
+    </header>
+
+    <main id="main-content" class="dashboard">
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Euro Short-Term Rate</p>
+          <h1 id="page-title">Der Tagesgeldsatz<br />der Eurozone.</h1>
+        </div>
+        <p class="intro-copy">
+          Der €STR bildet die unbesicherten Übernacht-Kreditkosten von Banken im Euroraum ab.
+          Offiziell veröffentlicht von der Europäischen Zentralbank.
+        </p>
+      </section>
+
+      <div id="error-panel" class="error-panel" role="alert" hidden>
+        <div>
+          <strong>Daten derzeit nicht verfügbar</strong>
+          <p>
+            Die aktuellen EZB-Daten konnten nicht geladen werden. Bitte prüfe deine Verbindung
+            oder versuche es gleich noch einmal.
+          </p>
+        </div>
+        <button id="retry-button" class="button button-secondary" type="button">
+          Erneut versuchen
+        </button>
+      </div>
+
+      <section id="dashboard-content" aria-label="€STR-Übersicht" aria-busy="true">
+        <div class="hero-grid">
+          <article class="card rate-card">
+            <div class="card-heading">
+              <span>Aktueller €STR</span>
+              <span id="market-status" class="status-pill status-loading">
+                <span class="status-indicator" aria-hidden="true"></span>
+                Wird geladen
+              </span>
+            </div>
+
+            <div class="rate-row">
+              <p id="current-rate" class="current-rate skeleton-text" aria-live="polite">—</p>
+              <span class="rate-unit">%</span>
+            </div>
+
+            <div class="rate-footer">
+              <p>
+                Referenzdatum
+                <strong id="reference-date" class="skeleton-text">—</strong>
+              </p>
+              <p>
+                Letzte Veröffentlichung
+                <strong id="publication-date" class="skeleton-text">—</strong>
+              </p>
+            </div>
+          </article>
+
+          <article class="card signal-card">
+            <div>
+              <p class="card-kicker">Einordnung</p>
+              <h2 id="signal-title">Daten werden geladen</h2>
+              <p id="signal-copy" class="muted">
+                Sobald die EZB-Daten verfügbar sind, erscheint hier die Einordnung des Zinssatzes.
+              </p>
+            </div>
+            <div class="signal-scale" aria-hidden="true">
+              <span>Negativ</span>
+              <span>Nahe null</span>
+              <span>Positiv</span>
+              <div class="scale-track">
+                <span id="scale-marker" class="scale-marker" style="left: 50%"></span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <section class="metrics-grid" aria-label="Kennzahlen">
+          <article class="card metric-card">
+            <div class="metric-icon metric-icon-change" aria-hidden="true">↕</div>
+            <div>
+              <p class="metric-label">Zum vorherigen Wert</p>
+              <p id="daily-change" class="metric-value skeleton-text">—</p>
+              <p id="previous-rate" class="metric-note">Vorheriger €STR: —</p>
+            </div>
+          </article>
+
+          <article class="card metric-card metric-highlight">
+            <div class="metric-icon" aria-hidden="true">≈</div>
+            <div>
+              <p class="metric-label">Geschätzte ETF-Nettorendite</p>
+              <p id="estimated-yield" class="metric-value skeleton-text">—</p>
+              <p class="metric-note">€STR + 0,085 %-Pkt. − 0,10 %-Pkt. Kosten</p>
+            </div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-icon" aria-hidden="true">◎</div>
+            <div>
+              <p class="metric-label">Datenstatus</p>
+              <p id="data-status" class="metric-value metric-value-small skeleton-text">—</p>
+              <p class="metric-note">TARGET-Geschäftstage, Veröffentlichung i. d. R. 08:00 Uhr</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="card chart-card" aria-labelledby="chart-title">
+          <div class="chart-header">
+            <div>
+              <p class="card-kicker">Historischer Verlauf</p>
+              <h2 id="chart-title">€STR-Entwicklung</h2>
+            </div>
+            <div class="range-selector" role="group" aria-label="Zeitraum auswählen">
+              <button type="button" data-range="30">30 T</button>
+              <button type="button" data-range="90">3 M</button>
+              <button type="button" data-range="365" class="active" aria-pressed="true">1 J</button>
+              <button type="button" data-range="all">Max</button>
+            </div>
+          </div>
+
+          <div
+            id="chart"
+            class="chart"
+            role="img"
+            aria-label="Historischer Verlauf des Euro Short-Term Rate"
+          >
+            <div class="chart-loading" aria-hidden="true"></div>
+          </div>
+
+          <div class="chart-footer">
+            <span><span class="legend-line" aria-hidden="true"></span>€STR in Prozent</span>
+            <span id="chart-period">Zeitraum wird geladen</span>
+          </div>
+
+          <details class="data-table-details">
+            <summary>Daten als Tabelle anzeigen</summary>
+            <div class="table-scroll">
+              <table>
+                <caption class="sr-only">Historische €STR-Werte</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Referenzdatum</th>
+                    <th scope="col">€STR</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table"></tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+
+        <section class="info-grid" aria-label="Hinweise">
+          <article class="info-block">
+            <p class="card-kicker">Zur Schätzung</p>
+            <h2>Ein transparenter Näherungswert.</h2>
+            <p>
+              Die angezeigte ETF-Nettorendite folgt exakt dem vorgegebenen Schema. Tatsächliche
+              Renditen können durch Tracking-Differenz, Steuern, Spreads und weitere Kosten abweichen.
+              Die Angabe ist keine Anlageberatung.
+            </p>
+          </article>
+          <article class="info-block">
+            <p class="card-kicker">Zur Datenquelle</p>
+            <h2>Direkt aus dem ECB Data Portal.</h2>
+            <p>
+              Verwendet wird ausschließlich die offizielle EZB-Zeitreihe
+              <code>EST.B.EU000A2X2A25.WT</code>. An Wochenenden und TARGET-Feiertagen kann der
+              zuletzt veröffentlichte Wert unverändert bleiben.
+            </p>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>€STR Monitor <span aria-hidden="true">·</span> Unabhängige Visualisierung</p>
+      <p>
+        Quelle:
+        <a
+          href="https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html"
+          target="_blank"
+          rel="noreferrer"
+          >Europäische Zentralbank</a
+        >
+      </p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "seriesKey": "EST.B.EU000A2X2A25.WT",
+  "source": {
+    "name": "European Central Bank — ECB Data Portal",
+    "apiUrl": "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?format=csvdata&lastNObservations=400",
+    "seriesUrl": "https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT",
+    "officialPageUrl": "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html"
+  },
+  "unit": "percent",
+  "publicationDate": "2026-08-03",
+  "referenceDate": "2026-07-31",
+  "current": {
+    "rate": 2.184,
+    "previousRate": 2.185,
+    "changePercentagePoints": -0.001,
+    "estimatedNetYield": 2.169,
+    "classification": "positive"
+  },
+  "observations": [
+    {
+      "date": "2026-07-03",
+      "rate": 2.182
+    },
+    {
+      "date": "2026-07-17",
+      "rate": 2.186
+    },
+    {
+      "date": "2026-07-22",
+      "rate": 2.185
+    },
+    {
+      "date": "2026-07-24",
+      "rate": 2.186
+    },
+    {
+      "date": "2026-07-27",
+      "rate": 2.185
+    },
+    {
+      "date": "2026-07-31",
+      "rate": 2.184
+    }
+  ]
+}
