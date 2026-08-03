@@ -4,11 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#72f49b" />
     <meta
       name="description"
-      content="Aktueller Euro Short-Term Rate (€STR), historische Entwicklung und eine grobe Geldmarkt-ETF-Renditeschätzung."
+      content="Aktueller Euro Short-Term Rate (€STR), historische Entwicklung und eine vereinfachte Geldmarkt-ETF-Renditeschätzung auf Basis offizieller EZB-Daten."
     />
-    <title>€STR Monitor — Euro Short-Term Rate</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="€STR Monitor" />
+    <meta
+      property="og:description"
+      content="Aktueller €STR, Einordnung und historischer Verlauf auf Basis offizieller Daten der Europäischen Zentralbank."
+    />
+    <meta property="og:url" content="https://nightlifex.github.io/estercheck/" />
+    <title>€STR Monitor</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="preconnect" href="https://rsms.me/" crossorigin />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <link rel="stylesheet" href="assets/styles.css" />
     <script src="assets/app.js" defer></script>
   </head>
@@ -17,8 +30,8 @@
 
     <header class="site-header">
       <a class="brand" href="./" aria-label="€STR Monitor – Startseite">
-        <span class="brand-mark" aria-hidden="true">€</span>
-        <span>STR Monitor</span>
+        <img class="brand-mark" src="favicon.svg" alt="" width="34" height="34" />
+        <span class="brand-title">STR Monitor</span>
       </a>
       <a
         class="source-link"
@@ -28,7 +41,7 @@
         rel="noreferrer"
       >
         <span class="source-dot" aria-hidden="true"></span>
-        Offizielle EZB-Daten
+        <span class="source-label">Offizielle EZB-Daten</span>
       </a>
     </header>
 
@@ -44,36 +57,10 @@
         </p>
       </section>
 
-      <aside class="trust-bar" aria-label="Transparenz und Datenherkunft">
-        <span class="trust-item">
-          <span class="source-dot" aria-hidden="true"></span>
-          Automatisch täglich aktualisiert
-        </span>
-        <a
-          class="trust-item"
-          href="https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT"
-          target="_blank"
-          rel="noreferrer"
-          >Verwendete EZB-Zeitreihe</a
-        >
-        <a
-          class="trust-item"
-          href="https://github.com/nightlifex/estercheck"
-          target="_blank"
-          rel="noreferrer"
-          >GitHub-Repository</a
-        >
-        <span class="trust-item trust-note">
-          Unabhängig – keine Verbindung zur EZB oder zu Xtrackers
-        </span>
-      </aside>
-
       <div id="error-panel" class="error-panel" role="alert" hidden>
         <div>
-          <strong id="error-title">Daten derzeit nicht verfügbar</strong>
-          <p id="error-copy">
-            Die Datendatei ist derzeit nicht erreichbar oder enthält keine gültigen Werte.
-          </p>
+          <strong id="error-title">Die aktuellen Daten konnten derzeit nicht geladen werden.</strong>
+          <p id="error-copy">Bitte versuchen Sie es später erneut.</p>
           <p id="error-last-success" class="error-last-success" hidden></p>
         </div>
         <button id="retry-button" class="button button-secondary" type="button">
@@ -98,14 +85,20 @@
             </div>
 
             <div class="rate-footer">
-              <p>
-                Referenzdatum
-                <strong id="reference-date" class="skeleton-text">—</strong>
+              <p class="rate-stand">
+                Stand: <strong id="reference-date" class="skeleton-text">—</strong>
+                <span aria-hidden="true">·</span> offizieller EZB-Wert
               </p>
-              <p>
-                Letzte Veröffentlichung
-                <strong id="publication-date" class="skeleton-text">—</strong>
+              <p class="rate-target-note">
+                Veröffentlichung an TARGET-Geschäftstagen, in der Regel um 08:00 Uhr.
               </p>
+              <div class="rate-change" aria-label="Veränderung zum vorherigen Wert">
+                <span>
+                  Veränderung
+                  <strong id="daily-change" class="skeleton-text">—</strong>
+                </span>
+                <span id="previous-rate">Vorheriger €STR: —</span>
+              </div>
             </div>
           </article>
 
@@ -128,49 +121,21 @@
           </article>
         </div>
 
-        <section class="metrics-grid" aria-label="Kennzahlen">
-          <article class="card metric-card">
-            <div class="metric-icon metric-icon-change" aria-hidden="true">↕</div>
-            <div>
-              <p class="metric-label">Zum vorherigen Wert</p>
-              <p id="daily-change" class="metric-value skeleton-text">—</p>
-              <p id="previous-rate" class="metric-note">Vorheriger €STR: —</p>
-            </div>
-          </article>
-
-          <article class="card metric-card metric-highlight">
-            <div class="metric-icon" aria-hidden="true">≈</div>
-            <div>
-              <p class="metric-label">Geschätzte ETF-Nettorendite</p>
-              <p id="estimated-yield" class="metric-value skeleton-text">—</p>
-              <p class="metric-note">€STR + 0,085 %-Pkt. − 0,10 %-Pkt. Kosten</p>
-            </div>
-          </article>
-
-          <article class="card metric-card">
-            <div class="metric-icon" aria-hidden="true">◎</div>
-            <div>
-              <p class="metric-label">Datenstatus</p>
-              <p id="data-status" class="metric-value metric-value-small skeleton-text">—</p>
-              <p id="data-updated-at" class="metric-note">
-                TARGET-Geschäftstage, Veröffentlichung i. d. R. 08:00 Uhr
-              </p>
-            </div>
-          </article>
-        </section>
-
         <section class="card chart-card" aria-labelledby="chart-title">
           <div class="chart-header">
             <div>
               <p class="card-kicker">Historischer Verlauf</p>
               <h2 id="chart-title">€STR-Entwicklung</h2>
             </div>
-            <div class="range-selector" role="group" aria-label="Zeitraum auswählen">
-              <button type="button" data-range="30">30 T</button>
-              <button type="button" data-range="90">3 M</button>
-              <button type="button" data-range="365" class="active" aria-pressed="true">1 J</button>
-              <button type="button" data-range="1826">5 J</button>
-              <button type="button" data-range="all">Max</button>
+            <div id="range-selector" class="range-selector" role="group" aria-label="Zeitraum auswählen">
+              <span id="range-indicator" class="range-indicator" aria-hidden="true"></span>
+              <button type="button" data-range="30" aria-pressed="false">30 T</button>
+              <button type="button" data-range="90" aria-pressed="false">3 M</button>
+              <button type="button" data-range="365" class="active" aria-pressed="true">
+                1 Jahr
+              </button>
+              <button type="button" data-range="1826" aria-pressed="false">5 Jahre</button>
+              <button type="button" data-range="all" aria-pressed="false">Max</button>
             </div>
           </div>
 
@@ -205,54 +170,73 @@
           </details>
         </section>
 
-        <section class="info-grid" aria-label="Hinweise">
-          <article class="info-block">
-            <p class="card-kicker">Zur Schätzung</p>
-            <h2>Ein transparenter Näherungswert.</h2>
-            <p>
-              Die angezeigte ETF-Nettorendite folgt exakt dem vorgegebenen Schema. Tatsächliche
-              Renditen können durch Tracking-Differenz, Steuern, Spreads und weitere Kosten abweichen.
-              Die Angabe ist keine Anlageberatung.
+        <section class="card etf-card" aria-labelledby="etf-title">
+          <div class="etf-summary">
+            <p class="card-kicker">Optionale Orientierung</p>
+            <h2 id="etf-title">Geschätzte Geldmarkt-ETF-Rendite</h2>
+            <p class="etf-disclaimer">
+              Vereinfachte Schätzung vor Steuern, Spread und Handelskosten. Keine tatsächliche oder
+              garantierte Fondsrendite.
             </p>
-          </article>
-          <article class="info-block">
-            <p class="card-kicker">Zur Datenquelle</p>
-            <h2>Direkt aus dem ECB Data Portal.</h2>
-            <p>
-              Verwendet wird ausschließlich die
-              <a
-                href="https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT"
-                target="_blank"
-                rel="noreferrer"
-                >offizielle EZB-Zeitreihe <code>EST.B.EU000A2X2A25.WT</code></a
-              >. An Wochenenden und TARGET-Feiertagen kann der zuletzt veröffentlichte Wert
-              unverändert bleiben.
+          </div>
+          <div class="etf-result">
+            <p id="estimated-yield" class="etf-value skeleton-text">—</p>
+            <p class="etf-formula">
+              Annahme: €STR + 0,085 Prozentpunkte − 0,10 Prozentpunkte laufende Kosten
             </p>
-          </article>
+          </div>
+        </section>
+
+        <section class="source-panel" aria-labelledby="source-title">
+          <div class="source-header">
+            <p class="card-kicker">Transparenz</p>
+            <h2 id="source-title">Quelle und Hinweise</h2>
+          </div>
+          <dl class="source-list">
+            <div>
+              <dt>Datenquelle</dt>
+              <dd>Europäische Zentralbank, ECB Data Portal</dd>
+            </div>
+            <div>
+              <dt>Serienkennung</dt>
+              <dd><code>EST.B.EU000A2X2A25.WT</code></dd>
+            </div>
+            <div>
+              <dt>Offizielle Seite</dt>
+              <dd>
+                <a
+                  href="https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  >€STR bei der EZB</a
+                >
+              </dd>
+            </div>
+            <div>
+              <dt>Aktualisierung</dt>
+              <dd>Automatisch täglich nach der EZB-Veröffentlichung</dd>
+            </div>
+          </dl>
+          <div class="source-notes">
+            <p>
+              An Wochenenden und TARGET-Feiertagen kann der zuletzt veröffentlichte Wert unverändert
+              bleiben.
+            </p>
+            <p>Unabhängige Website; keine Verbindung zur EZB oder zu Xtrackers.</p>
+            <p class="source-legal">
+              Vereinfachte Schätzung vor Steuern, Spread und Handelskosten. Keine tatsächliche oder
+              garantierte Fondsrendite. Keine Anlageberatung.
+            </p>
+          </div>
         </section>
       </section>
-
-      <aside class="legal-notice" aria-label="Wichtiger Hinweis">
-        Vereinfachte Schätzung vor Steuern, Spread und Handelskosten. Keine tatsächliche oder
-        garantierte Fondsrendite. Keine Anlageberatung.
-      </aside>
     </main>
 
     <footer class="site-footer">
       <p>€STR Monitor <span aria-hidden="true">·</span> Unabhängige Visualisierung</p>
-      <p>
-        Quellen und Projekt:
-        <a
-          href="https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html"
-          target="_blank"
-          rel="noreferrer"
-          >Europäische Zentralbank</a
-        >
-        <span aria-hidden="true">·</span>
-        <a href="https://github.com/nightlifex/estercheck" target="_blank" rel="noreferrer"
-          >GitHub</a
-        >
-      </p>
+      <a href="https://github.com/nightlifex/estercheck" target="_blank" rel="noreferrer"
+        >GitHub-Repository</a
+      >
     </footer>
   </body>
 </html>

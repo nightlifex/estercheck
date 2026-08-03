@@ -31,7 +31,6 @@ const elements = {
   retryButton: document.querySelector("#retry-button"),
   currentRate: document.querySelector("#current-rate"),
   referenceDate: document.querySelector("#reference-date"),
-  publicationDate: document.querySelector("#publication-date"),
   marketStatus: document.querySelector("#market-status"),
   signalTitle: document.querySelector("#signal-title"),
   signalCopy: document.querySelector("#signal-copy"),
@@ -39,11 +38,11 @@ const elements = {
   dailyChange: document.querySelector("#daily-change"),
   previousRate: document.querySelector("#previous-rate"),
   estimatedYield: document.querySelector("#estimated-yield"),
-  dataStatus: document.querySelector("#data-status"),
-  dataUpdatedAt: document.querySelector("#data-updated-at"),
   chart: document.querySelector("#chart"),
   chartPeriod: document.querySelector("#chart-period"),
   historyTable: document.querySelector("#history-table"),
+  rangeSelector: document.querySelector("#range-selector"),
+  rangeIndicator: document.querySelector("#range-indicator"),
   rangeButtons: [...document.querySelectorAll("[data-range]")],
 };
 
@@ -143,6 +142,7 @@ async function loadData() {
     console.error("€STR-Daten konnten nicht geladen werden:", error);
     if (!state.dataset) state.dataset = readCachedDataset();
     if (state.dataset) renderDashboard();
+    else elements.content.hidden = true;
     showLoadError(Boolean(state.dataset));
     setLoading(false, true);
   }
@@ -165,7 +165,7 @@ function readCachedDataset() {
   }
 }
 
-function formatSuccessfulUpdate(dataset) {
+function formatAvailableEcbState(dataset) {
   const date = formatDate(dataset?.publicationDate);
   if (date === "—") return null;
   const time = /^\d{2}:\d{2}$/.test(dataset?.publicationTime)
@@ -175,16 +175,14 @@ function formatSuccessfulUpdate(dataset) {
 }
 
 function showLoadError(hasFallback) {
-  const lastSuccess = hasFallback ? formatSuccessfulUpdate(state.dataset) : null;
-  elements.errorTitle.textContent = hasFallback
-    ? "Neue Daten konnten nicht geladen werden"
-    : "Daten derzeit nicht verfügbar";
+  const lastSuccess = hasFallback ? formatAvailableEcbState(state.dataset) : null;
+  elements.errorTitle.textContent = "Die aktuellen Daten konnten derzeit nicht geladen werden.";
   elements.errorCopy.textContent = hasFallback
-    ? "Angezeigt wird weiterhin der letzte gültige Datenstand. Du kannst die Aktualisierung erneut versuchen."
-    : "Die Datendatei ist derzeit nicht erreichbar oder enthält keine gültigen Werte. Bitte versuche es später erneut.";
+    ? "Es wird der letzte erfolgreich geladene Datenstand angezeigt."
+    : "Bitte versuchen Sie es später erneut.";
   elements.errorLastSuccess.hidden = !lastSuccess;
   elements.errorLastSuccess.textContent = lastSuccess
-    ? `Letzte erfolgreiche Aktualisierung: ${lastSuccess}`
+    ? `Letzter verfügbarer EZB-Stand: ${lastSuccess}`
     : "";
 }
 
@@ -200,7 +198,7 @@ function setLoading(isLoading, hasError = false) {
 }
 
 function renderDashboard() {
-  const { observations, publicationDate } = state.dataset;
+  const { observations } = state.dataset;
   const latest = observations.at(-1);
   const previous = observations.at(-2);
   const change = Number((latest.rate - previous.rate).toFixed(3));
@@ -211,7 +209,6 @@ function renderDashboard() {
 
   elements.currentRate.textContent = formatRate(latest.rate);
   elements.referenceDate.textContent = formatDate(latest.date);
-  elements.publicationDate.textContent = formatDate(publicationDate);
   elements.marketStatus.className = `status-pill ${
     classification.key === "negative"
       ? "status-negative"
@@ -230,11 +227,7 @@ function renderDashboard() {
   elements.dailyChange.classList.toggle("value-negative", change < 0);
   elements.previousRate.textContent = `Vorheriger €STR: ${formatRate(previous.rate)} %`;
   elements.estimatedYield.textContent = `${formatRate(estimatedYield)} %`;
-  elements.dataStatus.textContent = "Automatisch täglich aktualisiert";
-  const lastSuccessfulUpdate = formatSuccessfulUpdate(state.dataset);
-  elements.dataUpdatedAt.textContent = lastSuccessfulUpdate
-    ? `Letzter erfolgreicher Stand: ${lastSuccessfulUpdate}`
-    : "Letzter erfolgreicher Stand: nicht verfügbar";
+  elements.content.hidden = false;
 
   renderChart();
   renderTable(observations);
@@ -494,9 +487,35 @@ elements.rangeButtons.forEach((button) => {
       candidate.classList.toggle("active", active);
       candidate.setAttribute("aria-pressed", String(active));
     });
+    positionRangeIndicator(button);
     if (state.dataset) renderChart();
   });
 });
+
+function positionRangeIndicator(button, animate = true) {
+  if (!button || !elements.rangeIndicator || !elements.rangeSelector) return;
+
+  if (!animate) elements.rangeIndicator.style.transition = "none";
+  elements.rangeIndicator.style.width = `${button.offsetWidth}px`;
+  elements.rangeIndicator.style.transform = `translateX(${button.offsetLeft}px)`;
+  elements.rangeSelector.dataset.indicatorReady = "true";
+
+  if (!animate) {
+    requestAnimationFrame(() => elements.rangeIndicator.style.removeProperty("transition"));
+  }
+}
+
+function positionActiveRangeIndicator(animate = false) {
+  positionRangeIndicator(elements.rangeButtons.find((button) => button.classList.contains("active")), animate);
+}
+
+requestAnimationFrame(() => positionActiveRangeIndicator(false));
+
+if ("ResizeObserver" in window && elements.rangeSelector) {
+  new ResizeObserver(() => positionActiveRangeIndicator(false)).observe(elements.rangeSelector);
+} else {
+  window.addEventListener("resize", () => positionActiveRangeIndicator(false));
+}
 
 elements.retryButton.addEventListener("click", loadData);
 loadData();

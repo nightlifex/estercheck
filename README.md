@@ -6,16 +6,18 @@ JSON-Datei aus dem Repository.
 
 ## Funktionen
 
-- aktueller €STR mit offiziellem Referenz- und Veröffentlichungsdatum
+- aktueller €STR mit kompaktem Referenzdatum und offizieller Einordnung
 - Veränderung gegenüber der vorherigen Beobachtung
 - kostenbezogene Einordnung in voraussichtlich negativ, sehr gering oder positiv
 - responsives Verlaufsdiagramm mit 5-Jahres-Auswahl, Maximalansicht, Hover-Details und
   zugänglicher Datentabelle
-- grobe Geldmarkt-ETF-Nettorendite nach der Formel
+- vereinfachte Geldmarkt-ETF-Renditeschätzung nach der Formel
   `€STR + 0,085 Prozentpunkte − 0,10 Prozentpunkte laufende Kosten`
 - Ladezustand, verständliche Fehleranzeige, Browser-Fallback auf den letzten gültigen Stand und
   Wiederholungsfunktion
 - tägliche Datenaktualisierung über GitHub Actions ohne Leer-Commits
+- Favicon-Set aus dem grünen Header-Logo (`favicon.svg`, `favicon.ico` und
+  `apple-touch-icon.png`) mit GitHub-Pages-kompatiblen relativen Pfaden
 
 > Die ETF-Rendite ist nur eine vereinfachte Schätzung. Tracking-Differenz, Steuern, Spreads und
 > weitere Kosten sind nicht berücksichtigt. Die Anzeige ist keine Anlageberatung.
@@ -27,6 +29,7 @@ JSON-Datei aus dem Repository.
 | `index.html` | semantische Seitenstruktur |
 | `assets/styles.css` | responsives Dark-Mode-Design |
 | `assets/app.js` | Datenladen, Darstellung und SVG-Diagramm |
+| `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` | Browser- und Geräte-Icons aus dem Header-Logo |
 | `data/estr.json` | aufbereitete, vom Browser gelesene €STR-Daten |
 | `scripts/update-estr.mjs` | Abruf, Prüfung und Aufbereitung der EZB-Daten |
 | `scripts/serve.mjs` | kleiner lokaler Entwicklungsserver |
@@ -117,6 +120,6 @@ Es ist kein Build-Workflow erforderlich, da alle Dateien statisch im Repository 
 - Das Veröffentlichungsdatum wird nur übernommen, wenn Referenzdatum und Rate der offiziellen
   Seite exakt zur neuesten API-Beobachtung passen; bei einem kurzzeitigen Update-Versatz bleibt das
   bisherige Datum erhalten.
-- Die ETF-Schätzung bildet keine tatsächliche Fondsperformance und keine individuelle Nettorendite
-  nach Steuern ab.
+- Die ETF-Schätzung bildet keine tatsächliche Fondsperformance und keine individuelle Rendite nach
+  Steuern, Spread und Handelskosten ab.
 - Die Anwendung zeigt bewusst ausschließlich einen Dark Mode.
