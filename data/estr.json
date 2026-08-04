@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "seriesKey": "EST.B.EU000A2X2A25.WT",
   "source": {
     "name": "European Central Bank — ECB Data Portal",
@@ -11,6 +11,8 @@
   "publicationDate": "2026-08-03",
   "publicationTime": "08:00",
   "referenceDate": "2026-07-31",
+  "lastSuccessfulCheck": "2026-08-03T23:15:40.000Z",
+  "lastDataChange": "2026-08-03T23:15:40.000Z",
   "current": {
     "rate": 2.184,
     "previousRate": 2.185,

@@ -1,7 +1,8 @@
 const DATA_URL = "data/estr.json";
-const CACHE_KEY = "estercheck:last-valid-dataset:v1";
+const CACHE_KEY = "estercheck:last-valid-dataset:v2";
 const ETF_SPREAD_PERCENTAGE_POINTS = 0.085;
 const ETF_COST_PERCENTAGE_POINTS = 0.1;
+const STALE_CHECK_AGE_MS = 48 * 60 * 60 * 1000;
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
   day: "2-digit",
@@ -17,10 +18,22 @@ const shortDateFormatter = new Intl.DateTimeFormat("de-DE", {
   timeZone: "UTC",
 });
 
+const technicalCheckFormatter = new Intl.DateTimeFormat("de-DE", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "Europe/Berlin",
+});
+
 const state = {
   dataset: null,
   range: "365",
 };
+
+let renderedChartSize = "";
 
 const elements = {
   content: document.querySelector("#dashboard-content"),
@@ -31,6 +44,8 @@ const elements = {
   retryButton: document.querySelector("#retry-button"),
   currentRate: document.querySelector("#current-rate"),
   referenceDate: document.querySelector("#reference-date"),
+  lastSuccessfulCheck: document.querySelector("#last-successful-check"),
+  checkFreshnessWarning: document.querySelector("#check-freshness-warning"),
   marketStatus: document.querySelector("#market-status"),
   signalTitle: document.querySelector("#signal-title"),
   signalCopy: document.querySelector("#signal-copy"),
@@ -54,6 +69,20 @@ function formatDate(dateString) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateString))) return "—";
   if (Number.isNaN(parseDate(dateString).getTime())) return "—";
   return dateFormatter.format(parseDate(dateString));
+}
+
+function isValidTimestamp(value) {
+  return typeof value === "string" && value.includes("T") && Number.isFinite(Date.parse(value));
+}
+
+function formatTechnicalCheck(value) {
+  if (!isValidTimestamp(value)) return "—";
+  return `${technicalCheckFormatter.format(new Date(value)).replace(" um ", ", ")} Uhr`;
+}
+
+function isTechnicalCheckStale(value, now = Date.now()) {
+  if (!isValidTimestamp(value)) return true;
+  return now - Date.parse(value) > STALE_CHECK_AGE_MS;
 }
 
 function formatRate(value) {
@@ -106,8 +135,20 @@ function validateDataset(dataset) {
     throw new Error("Die Datendatei enthält nicht genügend Beobachtungen.");
   }
 
+  if (formatDate(dataset.referenceDate) === "—") {
+    throw new Error("Die Datendatei enthält kein gültiges Referenzdatum.");
+  }
+
   if (formatDate(dataset.publicationDate) === "—") {
     throw new Error("Die Datendatei enthält kein gültiges Veröffentlichungsdatum.");
+  }
+
+  if (!isValidTimestamp(dataset.lastSuccessfulCheck)) {
+    throw new Error("Die Datendatei enthält keinen gültigen technischen Prüfzeitpunkt.");
+  }
+
+  if (dataset.lastDataChange && !isValidTimestamp(dataset.lastDataChange)) {
+    throw new Error("Die Datendatei enthält keinen gültigen Änderungszeitpunkt.");
   }
 
   let previousDate = "";
@@ -119,6 +160,10 @@ function validateDataset(dataset) {
       throw new Error("Die Beobachtungen sind nicht eindeutig chronologisch sortiert.");
     }
     previousDate = observation.date;
+  }
+
+  if (dataset.referenceDate !== dataset.observations.at(-1).date) {
+    throw new Error("Referenzdatum und neueste Beobachtung widersprechen sich.");
   }
 
   return dataset;
@@ -166,12 +211,10 @@ function readCachedDataset() {
 }
 
 function formatAvailableEcbState(dataset) {
-  const date = formatDate(dataset?.publicationDate);
-  if (date === "—") return null;
-  const time = /^\d{2}:\d{2}$/.test(dataset?.publicationTime)
-    ? `, ${dataset.publicationTime} Uhr`
-    : "";
-  return `${date}${time} (EZB-Veröffentlichung)`;
+  const referenceDate = formatDate(dataset?.referenceDate);
+  const successfulCheck = formatTechnicalCheck(dataset?.lastSuccessfulCheck);
+  if (referenceDate === "—" || successfulCheck === "—") return null;
+  return `€STR-Stand: ${referenceDate} · zuletzt erfolgreich geprüft: ${successfulCheck}`;
 }
 
 function showLoadError(hasFallback) {
@@ -182,7 +225,7 @@ function showLoadError(hasFallback) {
     : "Bitte versuchen Sie es später erneut.";
   elements.errorLastSuccess.hidden = !lastSuccess;
   elements.errorLastSuccess.textContent = lastSuccess
-    ? `Letzter verfügbarer EZB-Stand: ${lastSuccess}`
+    ? `Letzter gültiger Datenstand: ${lastSuccess}`
     : "";
 }
 
@@ -208,7 +251,13 @@ function renderDashboard() {
   const classification = classifyRate(latest.rate);
 
   elements.currentRate.textContent = formatRate(latest.rate);
-  elements.referenceDate.textContent = formatDate(latest.date);
+  elements.referenceDate.textContent = formatDate(state.dataset.referenceDate);
+  elements.lastSuccessfulCheck.textContent = formatTechnicalCheck(
+    state.dataset.lastSuccessfulCheck,
+  );
+  elements.checkFreshnessWarning.hidden = !isTechnicalCheckStale(
+    state.dataset.lastSuccessfulCheck,
+  );
   elements.marketStatus.className = `status-pill ${
     classification.key === "negative"
       ? "status-negative"
@@ -247,9 +296,11 @@ function filterObservations(observations, range) {
 
 function renderChart() {
   const observations = filterObservations(state.dataset.observations, state.range);
-  const width = 1000;
-  const height = 330;
-  const margin = { top: 18, right: 18, bottom: 42, left: 58 };
+  const width = Math.max(Math.round(elements.chart.clientWidth), 320);
+  const height = Math.max(Math.round(elements.chart.clientHeight), 320);
+  renderedChartSize = `${width}x${height}`;
+  const compact = width < 620;
+  const margin = { top: 18, right: compact ? 12 : 18, bottom: 42, left: compact ? 52 : 58 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
   const values = observations.map((item) => item.rate);
@@ -483,7 +534,7 @@ elements.rangeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.range = button.dataset.range;
     elements.rangeButtons.forEach((candidate) => {
-      const active = candidate === button;
+      const active = candidate.dataset.range === state.range;
       candidate.classList.toggle("active", active);
       candidate.setAttribute("aria-pressed", String(active));
     });
@@ -515,6 +566,20 @@ if ("ResizeObserver" in window && elements.rangeSelector) {
   new ResizeObserver(() => positionActiveRangeIndicator(false)).observe(elements.rangeSelector);
 } else {
   window.addEventListener("resize", () => positionActiveRangeIndicator(false));
+}
+
+if ("ResizeObserver" in window && elements.chart) {
+  let chartResizeFrame;
+  new ResizeObserver(([entry]) => {
+    if (!state.dataset) return;
+    const nextSize = `${Math.max(Math.round(entry.contentRect.width), 320)}x${Math.max(
+      Math.round(entry.contentRect.height),
+      320,
+    )}`;
+    if (nextSize === renderedChartSize) return;
+    cancelAnimationFrame(chartResizeFrame);
+    chartResizeFrame = requestAnimationFrame(() => renderChart());
+  }).observe(elements.chart);
 }
 
 elements.retryButton.addEventListener("click", loadData);

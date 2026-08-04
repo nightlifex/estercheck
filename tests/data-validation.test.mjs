@@ -8,11 +8,14 @@ test("committed €STR data is internally consistent", async () => {
   const dataset = JSON.parse(await readFile(dataUrl, "utf8"));
   const { observations } = dataset;
 
+  assert.equal(dataset.schemaVersion, 2);
   assert.equal(dataset.seriesKey, "EST.B.EU000A2X2A25.WT");
   assert.equal(dataset.unit, "percent");
   assert.ok(observations.length > 1_000);
   assert.equal(observations[0].date, "2019-10-01");
   assert.match(dataset.publicationTime, /^\d{2}:\d{2}$/);
+  assert.ok(Number.isFinite(Date.parse(dataset.lastSuccessfulCheck)));
+  assert.ok(Number.isFinite(Date.parse(dataset.lastDataChange)));
   assert.doesNotMatch(dataset.source.apiUrl, /lastNObservations/i);
 
   const dates = observations.map((item) => item.date);
@@ -36,7 +39,7 @@ test("committed €STR data is internally consistent", async () => {
   assert.equal(dataset.current.estimatedNetYield, Number((latest.rate + 0.085 - 0.1).toFixed(3)));
 });
 
-test("GitHub Actions workflow includes update and no-change safeguards", async () => {
+test("GitHub Actions records every successful check and limits commits to the data file", async () => {
   const workflow = await readFile(new URL("../.github/workflows/update-estr.yml", import.meta.url), "utf8");
 
   assert.match(workflow, /cron:\s*["']30 7 \* \* \*["']/);
@@ -44,4 +47,5 @@ test("GitHub Actions workflow includes update and no-change safeguards", async (
   assert.match(workflow, /npm run update-data/);
   assert.match(workflow, /git diff --quiet -- data\/estr\.json/);
   assert.match(workflow, /git add -- data\/estr\.json/);
+  assert.match(workflow, /record successful €STR check/);
 });

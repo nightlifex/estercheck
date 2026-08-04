@@ -59,10 +59,18 @@ test("buildDataset calculates change and estimated ETF net yield", () => {
     referenceDate: "2026-07-31",
     rate: 2.184,
   };
-  const dataset = buildDataset(observations, publication);
+  const dataset = buildDataset(
+    observations,
+    publication,
+    null,
+    new Date("2026-08-04T07:30:00.000Z"),
+  );
 
+  assert.equal(dataset.schemaVersion, 2);
   assert.equal(dataset.publicationDate, "2026-08-03");
   assert.equal(dataset.publicationTime, "08:00");
+  assert.equal(dataset.lastSuccessfulCheck, "2026-08-04T07:30:00.000Z");
+  assert.equal(dataset.lastDataChange, "2026-08-04T07:30:00.000Z");
   assert.equal(dataset.current.changePercentagePoints, -0.001);
   assert.equal(dataset.current.estimatedNetYield, 2.169);
   assert.equal(dataset.current.classification, "positive");
@@ -87,6 +95,29 @@ test("classifyRate applies the ETF-cost thresholds including their boundaries", 
   assert.equal(classifyRate(0.015), "very-low");
   assert.equal(classifyRate(0.25), "very-low");
   assert.equal(classifyRate(0.251), "positive");
+});
+
+test("a successful check updates its timestamp without duplicating unchanged observations", () => {
+  const observations = [
+    { date: "2026-07-30", rate: 2.185 },
+    { date: "2026-07-31", rate: 2.184 },
+  ];
+  const first = buildDataset(
+    observations,
+    null,
+    null,
+    new Date("2026-08-03T07:30:00.000Z"),
+  );
+  const checkedAgain = buildDataset(
+    observations,
+    null,
+    first,
+    new Date("2026-08-04T07:30:00.000Z"),
+  );
+
+  assert.equal(checkedAgain.lastSuccessfulCheck, "2026-08-04T07:30:00.000Z");
+  assert.equal(checkedAgain.lastDataChange, "2026-08-03T07:30:00.000Z");
+  assert.deepEqual(checkedAgain.observations, observations);
 });
 
 test("ECB API URL requests the complete official history", () => {
