@@ -3,8 +3,9 @@ name: Update €STR data
 on:
   schedule:
     # ECB publishes €STR at 08:00 Central European time on TARGET business days.
-    # 07:30 UTC is after publication in both CET and CEST.
-    - cron: "30 7 * * *"
+    # Run at 08:17 German time throughout daylight-saving and standard time.
+    - cron: "17 8 * * *"
+      timezone: "Europe/Berlin"
   workflow_dispatch:
 
 permissions:
