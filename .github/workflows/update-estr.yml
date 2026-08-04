@@ -34,16 +34,16 @@ jobs:
       - name: Fetch official ECB data
         run: npm run update-data
 
-      - name: Commit only when ECB data changed
+      - name: Commit successful data check
         shell: bash
         run: |
           if git diff --quiet -- data/estr.json; then
-            echo "No new or revised ECB observation; nothing to commit."
+            echo "The successful check metadata is already current; nothing to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- data/estr.json
-          git commit -m "chore(data): update official €STR history"
+          git commit -m "chore(data): record successful €STR check"
           git push

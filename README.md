@@ -6,7 +6,7 @@ JSON-Datei aus dem Repository.
 
 ## Funktionen
 
-- aktueller €STR mit kompaktem Referenzdatum und offizieller Einordnung
+- aktueller €STR mit getrenntem Referenzdatum und Zeitpunkt der letzten erfolgreichen Datenprüfung
 - Veränderung gegenüber der vorherigen Beobachtung
 - kostenbezogene Einordnung in voraussichtlich negativ, sehr gering oder positiv
 - responsives Verlaufsdiagramm mit 5-Jahres-Auswahl, Maximalansicht, Hover-Details und
@@ -15,9 +15,9 @@ JSON-Datei aus dem Repository.
   `€STR + 0,085 Prozentpunkte − 0,10 Prozentpunkte laufende Kosten`
 - Ladezustand, verständliche Fehleranzeige, Browser-Fallback auf den letzten gültigen Stand und
   Wiederholungsfunktion
-- tägliche Datenaktualisierung über GitHub Actions ohne Leer-Commits
-- Favicon-Set aus dem grünen Header-Logo (`favicon.svg`, `favicon.ico` und
-  `apple-touch-icon.png`) mit GitHub-Pages-kompatiblen relativen Pfaden
+- tägliche Datenprüfung über GitHub Actions, auch an Tagen ohne neue EZB-Beobachtung
+- Favicon-Set aus der bereitgestellten grünen PNG-Kachel mit schwarzem Eurozeichen in 16, 32,
+  180, 192 und 512 Pixeln sowie GitHub-Pages-kompatiblen relativen Pfaden
 
 > Die ETF-Rendite ist nur eine vereinfachte Schätzung. Tracking-Differenz, Steuern, Spreads und
 > weitere Kosten sind nicht berücksichtigt. Die Anzeige ist keine Anlageberatung.
@@ -29,8 +29,9 @@ JSON-Datei aus dem Repository.
 | `index.html` | semantische Seitenstruktur |
 | `assets/styles.css` | responsives Dark-Mode-Design |
 | `assets/app.js` | Datenladen, Darstellung und SVG-Diagramm |
-| `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` | Browser- und Geräte-Icons aus dem Header-Logo |
-| `data/estr.json` | aufbereitete, vom Browser gelesene €STR-Daten |
+| `favicon*.png`, `favicon.ico`, `apple-touch-icon.png`, `icon-*.png` | Browser- und Geräte-Icons aus der bereitgestellten PNG-Kachel |
+| `site.webmanifest` | relative PWA-Iconverweise und Farbangaben |
+| `data/estr.json` | aufbereitete €STR-Daten inklusive `referenceDate`, `lastSuccessfulCheck` und `lastDataChange` |
 | `scripts/update-estr.mjs` | Abruf, Prüfung und Aufbereitung der EZB-Daten |
 | `scripts/serve.mjs` | kleiner lokaler Entwicklungsserver |
 | `tests/` | Tests für Parser, Berechnungen, Daten und Workflow-Schutzmechanismen |
@@ -88,13 +89,17 @@ Ablauf:
 1. Repository auschecken und Node.js bereitstellen.
 2. Parser-, Berechnungs- und Datenvalidierungen ausführen.
 3. offizielle EZB-API und Veröffentlichungsseite abrufen.
-4. `data/estr.json` nur bei neuen oder revidierten Beobachtungen schreiben.
-5. mit `git diff` prüfen, ob sich die Datei tatsächlich geändert hat.
-6. ausschließlich `data/estr.json` committen und auf denselben Branch zurückschreiben.
+4. den erfolgreichen technischen Prüfzeitpunkt in `lastSuccessfulCheck` schreiben.
+5. neue oder revidierte Beobachtungen ohne künstliche Duplikate übernehmen; `referenceDate` bleibt
+   das echte Referenzdatum des neuesten €STR-Werts.
+6. mit `git diff` prüfen und ausschließlich `data/estr.json` committen und auf denselben Branch
+   zurückschreiben.
 
-An Wochenenden und TARGET-Feiertagen bleibt die letzte Beobachtung üblicherweise unverändert. In
-diesem Fall endet der Workflow erfolgreich, ohne einen Commit zu erzeugen. Bei einem EZB-Ausfall
-schlägt der Workflow sichtbar fehl; die zuletzt geprüfte Datei im Repository bleibt erhalten.
+An Wochenenden und TARGET-Feiertagen bleibt die letzte Beobachtung üblicherweise unverändert. Der
+Workflow aktualisiert dann ausschließlich den erfolgreichen Prüfzeitpunkt; der historische Wert
+wird weder dupliziert noch auf das aktuelle Datum verschoben. Dadurch entsteht ein kleiner,
+inhaltlich sinnvoller Status-Commit. Bei einem EZB-Ausfall schlägt der Workflow vor dem Schreiben
+sichtbar fehl; die letzte gültige Datei im Repository bleibt erhalten.
 
 Damit geplante Workflows Daten zurückschreiben dürfen, muss unter **Settings → Actions → General →
 Workflow permissions** die Option **Read and write permissions** aktiviert sein. In geschützten

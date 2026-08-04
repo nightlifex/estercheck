@@ -87,8 +87,9 @@ button {
 
 .site-header,
 .dashboard,
-.site-footer {
-  width: min(1180px, calc(100% - 40px));
+.site-footer,
+.legal-notice {
+  width: min(80vw, 1680px);
   margin-inline: auto;
 }
 
@@ -102,7 +103,7 @@ button {
 
 .brand {
   display: inline-flex;
-  gap: 0.72rem;
+  gap: 0.42rem;
   align-items: center;
   color: var(--text);
   text-decoration: none;
@@ -157,8 +158,8 @@ button {
 
 .intro {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
-  gap: 3rem;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.7fr);
+  gap: clamp(2.5rem, 4vw, 4.5rem);
   align-items: end;
   margin-bottom: 36px;
 }
@@ -184,12 +185,17 @@ p {
 }
 
 h1 {
-  max-width: 780px;
+  max-width: none;
   margin-bottom: 0;
-  font-size: clamp(3rem, 7vw, 6.35rem);
+  font-size: clamp(3.1rem, 5.45vw, 5.9rem);
   font-weight: 670;
   line-height: 0.93;
   letter-spacing: -0.068em;
+}
+
+.headline-line {
+  display: block;
+  white-space: nowrap;
 }
 
 h2 {
@@ -325,6 +331,29 @@ h2 {
   font-size: 0.7rem;
 }
 
+.rate-check {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.rate-check strong {
+  color: var(--muted-strong);
+}
+
+.check-freshness-warning {
+  width: fit-content;
+  padding: 0.4rem 0.6rem;
+  color: var(--warning);
+  font-size: 0.7rem;
+  background: rgba(245, 201, 106, 0.07);
+  border: 1px solid rgba(245, 201, 106, 0.13);
+  border-radius: 8px;
+}
+
+.check-freshness-warning[hidden] {
+  display: none;
+}
+
 .rate-change {
   display: flex;
   flex-wrap: wrap;
@@ -355,7 +384,6 @@ h2 {
 }
 
 .muted,
-.etf-disclaimer,
 .source-notes {
   color: var(--muted);
   line-height: 1.65;
@@ -464,7 +492,7 @@ h2 {
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 650;
-  transition: color 140ms ease 80ms;
+  transition: color 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .range-selector button:hover {
@@ -477,7 +505,8 @@ h2 {
 
 .chart {
   position: relative;
-  min-height: 330px;
+  height: 360px;
+  min-height: 360px;
   margin-block: 2.15rem 0.8rem;
   touch-action: pan-y;
 }
@@ -485,7 +514,7 @@ h2 {
 .chart svg {
   display: block;
   width: 100%;
-  height: 330px;
+  height: 360px;
   overflow: visible;
 }
 
@@ -692,13 +721,7 @@ th:last-child {
 }
 
 .etf-summary h2 {
-  margin-bottom: 0.8rem;
-}
-
-.etf-disclaimer {
-  max-width: 650px;
   margin-bottom: 0;
-  font-size: 0.82rem;
 }
 
 .etf-result {
@@ -791,11 +814,6 @@ th:last-child {
   margin-bottom: 0;
 }
 
-.source-legal {
-  flex-basis: 100%;
-  color: var(--muted-strong);
-}
-
 code {
   padding: 0.12rem 0.3rem;
   color: var(--accent-strong);
@@ -859,6 +877,20 @@ code {
   margin: 0;
 }
 
+.legal-notice {
+  padding: 1.35rem 0 2.25rem;
+  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 82%, transparent);
+  font-size: 0.7rem;
+  line-height: 1.65;
+  border-top: 1px solid rgba(202, 255, 220, 0.07);
+}
+
+.legal-notice p {
+  max-width: 960px;
+  margin: 0;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -882,22 +914,31 @@ code {
   }
 }
 
+@media (max-width: 1100px) {
+  .site-header,
+  .dashboard,
+  .site-footer,
+  .legal-notice {
+    width: calc(100% - 40px);
+  }
+
+  .intro {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .intro-copy {
+    max-width: 680px;
+  }
+}
+
 @media (max-width: 900px) {
   .dashboard {
     padding-top: 64px;
   }
 
-  .intro,
   .hero-grid {
     grid-template-columns: 1fr;
-  }
-
-  .intro {
-    gap: 1.5rem;
-  }
-
-  .intro-copy {
-    max-width: 640px;
   }
 
   .signal-card {
@@ -915,12 +956,19 @@ code {
   .etf-result {
     text-align: left;
   }
+
+  .chart,
+  .chart svg {
+    height: 400px;
+    min-height: 400px;
+  }
 }
 
 @media (max-width: 620px) {
   .site-header,
   .dashboard,
-  .site-footer {
+  .site-footer,
+  .legal-notice {
     width: min(100% - 28px, 1180px);
   }
 
@@ -947,6 +995,11 @@ code {
 
   h1 {
     font-size: clamp(2.75rem, 14vw, 4.2rem);
+  }
+
+  .headline-line {
+    display: inline;
+    white-space: normal;
   }
 
   .rate-card,
@@ -988,25 +1041,8 @@ code {
 
   .chart,
   .chart svg {
-    height: 280px;
-    min-height: 280px;
-  }
-
-  .chart-axis-label {
-    font-size: 30px;
-  }
-
-  .chart-grid,
-  .chart-zero-line {
-    stroke-width: 2;
-  }
-
-  .chart-line {
-    stroke-width: 6;
-  }
-
-  .chart-point {
-    stroke-width: 5;
+    height: 360px;
+    min-height: 360px;
   }
 
   .chart-footer,
@@ -1022,6 +1058,11 @@ code {
 
   .source-header .card-kicker {
     margin-bottom: 0.75rem;
+  }
+
+  .legal-notice {
+    padding-bottom: 1.75rem;
+    font-size: 0.69rem;
   }
 }
 

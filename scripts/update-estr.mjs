@@ -146,10 +146,18 @@ export function classifyRate(rate) {
   return "positive";
 }
 
-export function buildDataset(observations, publication = null, existing = null) {
+export function buildDataset(observations, publication = null, existing = null, checkedAt = new Date()) {
   if (!Array.isArray(observations) || observations.length < 2) {
     throw new Error("ECB response must contain at least two valid €STR observations.");
   }
+
+  const successfulCheck = normalizeTimestamp(checkedAt);
+  const observationsChanged = !sameObservations(observations, existing?.observations);
+  const lastDataChange = observationsChanged
+    ? successfulCheck
+    : isValidTimestamp(existing?.lastDataChange)
+      ? existing.lastDataChange
+      : successfulCheck;
 
   const latest = observations.at(-1);
   const previous = observations.at(-2);
@@ -169,7 +177,7 @@ export function buildDataset(observations, publication = null, existing = null) 
       : null;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     seriesKey: SERIES_KEY,
     source: {
       name: "European Central Bank — ECB Data Portal",
@@ -181,6 +189,8 @@ export function buildDataset(observations, publication = null, existing = null) 
     publicationDate,
     publicationTime,
     referenceDate: latest.date,
+    lastSuccessfulCheck: successfulCheck,
+    lastDataChange,
     current: {
       rate: latest.rate,
       previousRate: previous.rate,
@@ -192,6 +202,24 @@ export function buildDataset(observations, publication = null, existing = null) 
     },
     observations,
   };
+}
+
+function sameObservations(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false;
+  return left.every(
+    (observation, index) =>
+      observation.date === right[index]?.date && observation.rate === right[index]?.rate,
+  );
+}
+
+function isValidTimestamp(value) {
+  return typeof value === "string" && Number.isFinite(Date.parse(value));
+}
+
+function normalizeTimestamp(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) throw new Error("Successful check timestamp is invalid.");
+  return date.toISOString();
 }
 
 function round(value) {
@@ -231,20 +259,17 @@ export async function updateDataset() {
   ]);
   const observations = observationsFromCsv(csv);
   const publication = parsePublicationPage(publicationHtml);
-  const nextDataset = buildDataset(observations, publication, existing);
+  const nextDataset = buildDataset(observations, publication, existing, new Date());
   const nextJson = `${JSON.stringify(nextDataset, null, 2)}\n`;
-  const currentJson = existing ? `${JSON.stringify(existing, null, 2)}\n` : null;
-
-  if (nextJson === currentJson) {
-    console.log("No new or revised ECB observation. data/estr.json remains unchanged.");
-    return false;
-  }
+  const observationsChanged = !sameObservations(observations, existing?.observations);
 
   await writeFile(OUTPUT_PATH, nextJson, "utf8");
   console.log(
-    `Updated data/estr.json through ${nextDataset.referenceDate} (${nextDataset.current.rate.toFixed(3)}%).`,
+    observationsChanged
+      ? `Updated data/estr.json through ${nextDataset.referenceDate} (${nextDataset.current.rate.toFixed(3)}%).`
+      : `Recorded successful ECB check at ${nextDataset.lastSuccessfulCheck}; latest reference date remains ${nextDataset.referenceDate}.`,
   );
-  return true;
+  return observationsChanged;
 }
 
 const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];

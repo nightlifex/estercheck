@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#72f49b" />
+    <meta name="theme-color" content="#49d976" />
     <meta
       name="description"
       content="Aktueller Euro Short-Term Rate (€STR), historische Entwicklung und eine vereinfachte Geldmarkt-ETF-Renditeschätzung auf Basis offizieller EZB-Daten."
@@ -17,9 +17,12 @@
     />
     <meta property="og:url" content="https://nightlifex.github.io/estercheck/" />
     <title>€STR Monitor</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="favicon-16.png" type="image/png" sizes="16x16" />
+    <link rel="icon" href="favicon.png" type="image/png" />
     <link rel="icon" href="favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="site.webmanifest" />
     <link rel="preconnect" href="https://rsms.me/" crossorigin />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <link rel="stylesheet" href="assets/styles.css" />
@@ -47,9 +50,12 @@
 
     <main id="main-content" class="dashboard">
       <section class="intro" aria-labelledby="page-title">
-        <div>
+        <div class="intro-title">
           <p class="eyebrow">Euro Short-Term Rate</p>
-          <h1 id="page-title">Der Tagesgeldsatz<br />der Eurozone.</h1>
+          <h1 id="page-title">
+            <span class="headline-line">Der Tagesgeldsatz</span>
+            <span class="headline-line">der Eurozone.</span>
+          </h1>
         </div>
         <p class="intro-copy">
           Der €STR zeigt, zu welchen Zinssätzen Banken im Euroraum über Nacht Geld aufnehmen. Er
@@ -86,8 +92,15 @@
 
             <div class="rate-footer">
               <p class="rate-stand">
-                Stand: <strong id="reference-date" class="skeleton-text">—</strong>
+                €STR-Stand: <strong id="reference-date" class="skeleton-text">—</strong>
                 <span aria-hidden="true">·</span> offizieller EZB-Wert
+              </p>
+              <p class="rate-check">
+                Zuletzt erfolgreich geprüft:
+                <strong id="last-successful-check" class="skeleton-text">—</strong>
+              </p>
+              <p id="check-freshness-warning" class="check-freshness-warning" hidden>
+                Die letzte erfolgreiche Datenprüfung liegt ungewöhnlich lange zurück.
               </p>
               <p class="rate-target-note">
                 Veröffentlichung an TARGET-Geschäftstagen, in der Regel um 08:00 Uhr.
@@ -174,10 +187,6 @@
           <div class="etf-summary">
             <p class="card-kicker">Optionale Orientierung</p>
             <h2 id="etf-title">Geschätzte Geldmarkt-ETF-Rendite</h2>
-            <p class="etf-disclaimer">
-              Vereinfachte Schätzung vor Steuern, Spread und Handelskosten. Keine tatsächliche oder
-              garantierte Fondsrendite.
-            </p>
           </div>
           <div class="etf-result">
             <p id="estimated-yield" class="etf-value skeleton-text">—</p>
@@ -223,10 +232,6 @@
               bleiben.
             </p>
             <p>Unabhängige Website; keine Verbindung zur EZB oder zu Xtrackers.</p>
-            <p class="source-legal">
-              Vereinfachte Schätzung vor Steuern, Spread und Handelskosten. Keine tatsächliche oder
-              garantierte Fondsrendite. Keine Anlageberatung.
-            </p>
           </div>
         </section>
       </section>
@@ -238,5 +243,14 @@
         >GitHub-Repository</a
       >
     </footer>
+
+    <aside class="legal-notice" aria-label="Rechtlicher Hinweis">
+      <p>
+        Die dargestellten Berechnungen dienen ausschließlich der allgemeinen Information. Sie
+        berücksichtigen unter anderem keine individuellen Steuern, Handelskosten oder
+        produktspezifischen Abweichungen und stellen weder eine Renditezusage noch eine
+        Anlageberatung dar.
+      </p>
+    </aside>
   </body>
 </html>
