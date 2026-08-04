@@ -110,11 +110,15 @@ button {
 }
 
 .brand-mark {
-  display: block;
-  flex: none;
+  display: grid;
   width: 34px;
   height: 34px;
+  color: #06120b;
+  font-size: 1.25rem;
+  font-weight: 820;
+  background: var(--accent);
   border-radius: 10px;
+  place-items: center;
   box-shadow: 0 0 30px rgba(114, 244, 155, 0.2);
 }
 
