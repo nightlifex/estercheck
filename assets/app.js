@@ -342,7 +342,7 @@ function renderDashboard() {
       ? "status-negative"
       : classification.key === "low"
         ? "status-low"
-        : ""
+        : "status-positive"
   }`;
   elements.marketStatus.innerHTML = `<span class="status-indicator" aria-hidden="true"></span>${classification.label}`;
 

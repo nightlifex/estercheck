@@ -130,28 +130,6 @@ button {
   line-height: 1;
 }
 
-.source-link {
-  display: inline-flex;
-  gap: 0.55rem;
-  align-items: center;
-  color: var(--muted-strong);
-  font-size: 0.84rem;
-  text-decoration: none;
-  transition: color 160ms ease;
-}
-
-.source-link:hover {
-  color: var(--text);
-}
-
-.source-dot {
-  width: 7px;
-  height: 7px;
-  background: var(--accent);
-  border-radius: 999px;
-  box-shadow: 0 0 0 5px rgba(114, 244, 155, 0.1);
-}
-
 .dashboard {
   padding-block: 80px 72px;
 }
@@ -263,6 +241,27 @@ h2 {
   background: currentColor;
   border-radius: 50%;
   box-shadow: 0 0 10px currentColor;
+}
+
+.status-positive .status-indicator {
+  animation: positive-status-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes positive-status-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(114, 244, 155, 0),
+      0 0 8px currentColor;
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(114, 244, 155, 0.14),
+      0 0 12px currentColor;
+    transform: scale(1.08);
+  }
 }
 
 .status-loading {
@@ -994,15 +993,6 @@ code {
 
   .site-header {
     min-height: 74px;
-  }
-
-  .source-label {
-    display: none;
-  }
-
-  .source-link::after {
-    content: "EZB-Daten";
-    font-size: 0.75rem;
   }
 
   .dashboard {
