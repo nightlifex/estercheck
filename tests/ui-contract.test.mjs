@@ -123,7 +123,9 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(app, /rate <= 0\.25/);
   assert.match(app, /status-positive/);
   assert.match(app, /hasRevealedCurrentRate/);
-  assert.match(app, /classList\.add\("rate-reveal"\)/);
+  assert.match(app, /rateRow: document\.querySelector\("\.rate-row"\)/);
+  assert.match(app, /elements\.rateRow\.classList\.add\("rate-reveal"\)/);
+  assert.match(app, /marker: 94/);
   assert.match(app, /Die aktuellen Daten konnten derzeit nicht geladen werden/);
   assert.match(app, /Es wird der letzte erfolgreich geladene Datenstand angezeigt/);
   assert.match(styles, /width 260ms cubic-bezier\(0\.22, 1, 0\.36, 1\)/);
@@ -138,5 +140,8 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(styles, /\.scale-values,/);
   assert.match(styles, /\.scale-labels/);
   assert.match(styles, /@keyframes current-rate-reveal/);
+  assert.match(styles, /\.rate-row\.rate-reveal/);
   assert.match(styles, /animation: current-rate-reveal 620ms/);
+  assert.match(styles, /\.scale-labels span:nth-child\(2\)[^{]*\{\s*text-align: left/);
+  assert.match(styles, /\.scale-labels span:nth-child\(3\)[^{]*\{\s*text-align: center/);
 });
