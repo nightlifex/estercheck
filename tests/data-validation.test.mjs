@@ -42,7 +42,8 @@ test("committed €STR data is internally consistent", async () => {
 test("GitHub Actions records every successful check and limits commits to the data file", async () => {
   const workflow = await readFile(new URL("../.github/workflows/update-estr.yml", import.meta.url), "utf8");
 
-  assert.match(workflow, /cron:\s*["']30 7 \* \* \*["']/);
+  assert.match(workflow, /cron:\s*["']17 8 \* \* \*["']/);
+  assert.match(workflow, /timezone:\s*["']Europe\/Berlin["']/);
   assert.match(workflow, /permissions:\s*\n\s+contents:\s+write/);
   assert.match(workflow, /npm run update-data/);
   assert.match(workflow, /git diff --quiet -- data\/estr\.json/);

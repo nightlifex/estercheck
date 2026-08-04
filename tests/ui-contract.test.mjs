@@ -19,6 +19,11 @@ test("dashboard keeps one concise information hierarchy and public trust links",
   assert.match(html, /https:\/\/github\.com\/nightlifex\/estercheck/);
   assert.match(html, /EST\.B\.EU000A2X2A25\.WT/);
   assert.ok(html.indexOf('<aside class="legal-notice"') > html.indexOf('<footer class="site-footer"'));
+  assert.ok(html.indexOf('id="workflow-delay-warning"') > html.indexOf('<aside class="legal-notice"'));
+  assert.match(
+    html,
+    /Zeitgesteuerter GitHub Workflow durch hohe Auslastung noch nicht ausgeführt/,
+  );
   assert.doesNotMatch(html, /ETF-Nettorendite|Ein transparenter Näherungswert|Datenstatus/);
 });
 
@@ -93,6 +98,9 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(app, /lastSuccessfulCheck/);
   assert.match(app, /Europe\/Berlin/);
   assert.match(app, /STALE_CHECK_AGE_MS/);
+  assert.match(app, /WORKFLOW_DEADLINE_HOUR = 9/);
+  assert.match(app, /shouldShowWorkflowDelayWarning/);
+  assert.match(app, /WORKFLOW_STATUS_POLL_INTERVAL_MS/);
   assert.match(app, /rate < 0\.015/);
   assert.match(app, /rate <= 0\.25/);
   assert.match(app, /Die aktuellen Daten konnten derzeit nicht geladen werden/);

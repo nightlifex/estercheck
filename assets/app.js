@@ -3,6 +3,8 @@ const CACHE_KEY = "estercheck:last-valid-dataset:v2";
 const ETF_SPREAD_PERCENTAGE_POINTS = 0.085;
 const ETF_COST_PERCENTAGE_POINTS = 0.1;
 const STALE_CHECK_AGE_MS = 48 * 60 * 60 * 1000;
+const WORKFLOW_DEADLINE_HOUR = 9;
+const WORKFLOW_STATUS_POLL_INTERVAL_MS = 60 * 1000;
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
   day: "2-digit",
@@ -28,6 +30,16 @@ const technicalCheckFormatter = new Intl.DateTimeFormat("de-DE", {
   timeZone: "Europe/Berlin",
 });
 
+const berlinDateTimePartsFormatter = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "Europe/Berlin",
+});
+
 const state = {
   dataset: null,
   range: "365",
@@ -46,6 +58,7 @@ const elements = {
   referenceDate: document.querySelector("#reference-date"),
   lastSuccessfulCheck: document.querySelector("#last-successful-check"),
   checkFreshnessWarning: document.querySelector("#check-freshness-warning"),
+  workflowDelayWarning: document.querySelector("#workflow-delay-warning"),
   marketStatus: document.querySelector("#market-status"),
   signalTitle: document.querySelector("#signal-title"),
   signalCopy: document.querySelector("#signal-copy"),
@@ -83,6 +96,55 @@ function formatTechnicalCheck(value) {
 function isTechnicalCheckStale(value, now = Date.now()) {
   if (!isValidTimestamp(value)) return true;
   return now - Date.parse(value) > STALE_CHECK_AGE_MS;
+}
+
+function getBerlinDateTimeParts(value) {
+  return Object.fromEntries(
+    berlinDateTimePartsFormatter
+      .formatToParts(value)
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value: partValue }) => [type, partValue]),
+  );
+}
+
+function shouldShowWorkflowDelayWarning(lastSuccessfulCheck, now = new Date()) {
+  const current = getBerlinDateTimeParts(now);
+  if (Number(current.hour) < WORKFLOW_DEADLINE_HOUR) return false;
+  if (!isValidTimestamp(lastSuccessfulCheck)) return true;
+
+  const lastCheck = getBerlinDateTimeParts(new Date(lastSuccessfulCheck));
+  return [lastCheck.year, lastCheck.month, lastCheck.day].join("-") !==
+    [current.year, current.month, current.day].join("-");
+}
+
+function updateWorkflowDelayWarning() {
+  elements.workflowDelayWarning.hidden = !shouldShowWorkflowDelayWarning(
+    state.dataset?.lastSuccessfulCheck,
+  );
+}
+
+async function pollWorkflowStatus() {
+  updateWorkflowDelayWarning();
+  if (elements.workflowDelayWarning.hidden) return;
+
+  try {
+    const response = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+
+    const dataset = validateDataset(await response.json());
+    if (
+      !state.dataset ||
+      Date.parse(dataset.lastSuccessfulCheck) > Date.parse(state.dataset.lastSuccessfulCheck)
+    ) {
+      state.dataset = dataset;
+      cacheDataset(dataset);
+      renderDashboard();
+    }
+  } catch {
+    // The primary loading state handles data errors; this background check remains unobtrusive.
+  }
+
+  updateWorkflowDelayWarning();
 }
 
 function formatRate(value) {
@@ -190,6 +252,7 @@ async function loadData() {
     else elements.content.hidden = true;
     showLoadError(Boolean(state.dataset));
     setLoading(false, true);
+    updateWorkflowDelayWarning();
   }
 }
 
@@ -258,6 +321,7 @@ function renderDashboard() {
   elements.checkFreshnessWarning.hidden = !isTechnicalCheckStale(
     state.dataset.lastSuccessfulCheck,
   );
+  updateWorkflowDelayWarning();
   elements.marketStatus.className = `status-pill ${
     classification.key === "negative"
       ? "status-negative"
@@ -584,3 +648,4 @@ if ("ResizeObserver" in window && elements.chart) {
 
 elements.retryButton.addEventListener("click", loadData);
 loadData();
+window.setInterval(pollWorkflowStatus, WORKFLOW_STATUS_POLL_INTERVAL_MS);

@@ -891,6 +891,18 @@ code {
   margin: 0;
 }
 
+.workflow-delay-warning {
+  width: min(80vw, 1680px);
+  margin: -1rem auto 1.8rem;
+  color: #c7ae68;
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.workflow-delay-warning[hidden] {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -919,6 +931,10 @@ code {
   .dashboard,
   .site-footer,
   .legal-notice {
+    width: calc(100% - 40px);
+  }
+
+  .workflow-delay-warning {
     width: calc(100% - 40px);
   }
 
@@ -969,6 +985,10 @@ code {
   .dashboard,
   .site-footer,
   .legal-notice {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .workflow-delay-warning {
     width: min(100% - 28px, 1180px);
   }
 
