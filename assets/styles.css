@@ -297,6 +297,22 @@ h2 {
   letter-spacing: -0.085em;
 }
 
+.current-rate.rate-reveal {
+  animation: current-rate-reveal 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes current-rate-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.18em);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .rate-unit {
   margin: 0.25rem 0 0 0.7rem;
   color: var(--accent);
@@ -389,26 +405,43 @@ h2 {
 }
 
 .signal-scale {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.67rem;
 }
 
-.signal-scale span:nth-child(2) {
+.scale-values,
+.scale-labels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.scale-values span:nth-child(2),
+.scale-labels span:nth-child(2) {
   text-align: center;
 }
 
-.signal-scale span:nth-child(3) {
+.scale-values span:nth-child(3),
+.scale-labels span:nth-child(3) {
   text-align: right;
+}
+
+.scale-values {
+  color: var(--muted-strong);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scale-labels {
+  margin-top: 0.75rem;
 }
 
 .scale-track {
   position: relative;
-  grid-column: 1 / -1;
   height: 5px;
-  margin-top: 0.5rem;
+  margin-top: 0.7rem;
   background: linear-gradient(90deg, var(--danger), var(--warning), var(--accent));
   border-radius: 999px;
 }
