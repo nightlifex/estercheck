@@ -417,18 +417,12 @@ h2 {
   align-items: center;
 }
 
-.scale-values span:nth-child(2) {
-  text-align: center;
-}
-
-.scale-values span:nth-child(3) {
-  text-align: right;
-}
-
+.scale-values span:nth-child(2),
 .scale-labels span:nth-child(2) {
   text-align: left;
 }
 
+.scale-values span:nth-child(3),
 .scale-labels span:nth-child(3) {
   text-align: center;
 }

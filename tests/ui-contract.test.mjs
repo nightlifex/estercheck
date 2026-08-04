@@ -142,6 +142,12 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(styles, /@keyframes current-rate-reveal/);
   assert.match(styles, /\.rate-row\.rate-reveal/);
   assert.match(styles, /animation: current-rate-reveal 620ms/);
-  assert.match(styles, /\.scale-labels span:nth-child\(2\)[^{]*\{\s*text-align: left/);
-  assert.match(styles, /\.scale-labels span:nth-child\(3\)[^{]*\{\s*text-align: center/);
+  assert.match(
+    styles,
+    /\.scale-values span:nth-child\(2\),\s*\.scale-labels span:nth-child\(2\)\s*\{\s*text-align: left/,
+  );
+  assert.match(
+    styles,
+    /\.scale-values span:nth-child\(3\),\s*\.scale-labels span:nth-child\(3\)\s*\{\s*text-align: center/,
+  );
 });
