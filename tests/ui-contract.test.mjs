@@ -16,6 +16,11 @@ test("dashboard keeps one concise information hierarchy and public trust links",
   assert.match(html, /Geschätzte Geldmarkt-ETF-Rendite/);
   assert.match(html, /Die dargestellten Berechnungen dienen ausschließlich der allgemeinen Information/);
   assert.match(html, /data-range="1826" aria-pressed="false">5 Jahre</);
+  assert.match(html, /class="scale-values"/);
+  assert.match(html, /&lt; 0,015 %/);
+  assert.match(html, /0,015–0,25 %/);
+  assert.match(html, /&gt; 0,25 %/);
+  assert.match(html, /class="scale-labels"/);
   assert.match(html, /https:\/\/github\.com\/nightlifex\/estercheck/);
   assert.match(html, /https:\/\/data\.ecb\.europa\.eu\/data\/datasets\/EST\/EST\.B\.EU000A2X2A25\.WT/);
   assert.match(html, /https:\/\/www\.ecb\.europa\.eu\/stats\/financial_markets_and_interest_rates\/euro_short-term_rate\/html\/index\.en\.html/);
@@ -117,6 +122,8 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(app, /rate < 0\.015/);
   assert.match(app, /rate <= 0\.25/);
   assert.match(app, /status-positive/);
+  assert.match(app, /hasRevealedCurrentRate/);
+  assert.match(app, /classList\.add\("rate-reveal"\)/);
   assert.match(app, /Die aktuellen Daten konnten derzeit nicht geladen werden/);
   assert.match(app, /Es wird der letzte erfolgreich geladene Datenstand angezeigt/);
   assert.match(styles, /width 260ms cubic-bezier\(0\.22, 1, 0\.36, 1\)/);
@@ -128,4 +135,8 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /\.status-positive \.status-indicator/);
   assert.match(styles, /@keyframes positive-status-pulse/);
+  assert.match(styles, /\.scale-values,/);
+  assert.match(styles, /\.scale-labels/);
+  assert.match(styles, /@keyframes current-rate-reveal/);
+  assert.match(styles, /animation: current-rate-reveal 620ms/);
 });

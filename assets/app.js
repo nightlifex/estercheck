@@ -48,6 +48,7 @@ const state = {
 let renderedChartSize = "";
 let renderedTableDataset = null;
 let workflowStatusTimer = null;
+let hasRevealedCurrentRate = false;
 
 const elements = {
   content: document.querySelector("#dashboard-content"),
@@ -329,6 +330,10 @@ function renderDashboard() {
   const classification = classifyRate(latest.rate);
 
   elements.currentRate.textContent = formatRate(latest.rate);
+  if (!hasRevealedCurrentRate) {
+    elements.currentRate.classList.add("rate-reveal");
+    hasRevealedCurrentRate = true;
+  }
   elements.referenceDate.textContent = formatDate(state.dataset.referenceDate);
   elements.lastSuccessfulCheck.textContent = formatTechnicalCheck(
     state.dataset.lastSuccessfulCheck,
