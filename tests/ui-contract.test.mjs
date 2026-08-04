@@ -100,7 +100,13 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(app, /STALE_CHECK_AGE_MS/);
   assert.match(app, /WORKFLOW_DEADLINE_HOUR = 9/);
   assert.match(app, /shouldShowWorkflowDelayWarning/);
-  assert.match(app, /WORKFLOW_STATUS_POLL_INTERVAL_MS/);
+  assert.match(app, /WORKFLOW_STATUS_POLL_INTERVAL_MS = 5 \* 60 \* 1000/);
+  assert.match(app, /isSuccessfulCheckToday/);
+  assert.match(app, /stopWorkflowStatusPolling/);
+  assert.match(app, /window\.clearInterval\(workflowStatusTimer\)/);
+  assert.match(app, /renderTableOnDemand/);
+  assert.match(app, /dataTableDetails\.addEventListener\("toggle", renderTableOnDemand\)/);
+  assert.doesNotMatch(app, /renderChart\(\);\s*renderTable\(observations\);/);
   assert.match(app, /rate < 0\.015/);
   assert.match(app, /rate <= 0\.25/);
   assert.match(app, /Die aktuellen Daten konnten derzeit nicht geladen werden/);

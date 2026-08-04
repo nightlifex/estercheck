@@ -4,7 +4,7 @@ const ETF_SPREAD_PERCENTAGE_POINTS = 0.085;
 const ETF_COST_PERCENTAGE_POINTS = 0.1;
 const STALE_CHECK_AGE_MS = 48 * 60 * 60 * 1000;
 const WORKFLOW_DEADLINE_HOUR = 9;
-const WORKFLOW_STATUS_POLL_INTERVAL_MS = 60 * 1000;
+const WORKFLOW_STATUS_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
   day: "2-digit",
@@ -46,6 +46,8 @@ const state = {
 };
 
 let renderedChartSize = "";
+let renderedTableDataset = null;
+let workflowStatusTimer = null;
 
 const elements = {
   content: document.querySelector("#dashboard-content"),
@@ -69,6 +71,7 @@ const elements = {
   chart: document.querySelector("#chart"),
   chartPeriod: document.querySelector("#chart-period"),
   historyTable: document.querySelector("#history-table"),
+  dataTableDetails: document.querySelector(".data-table-details"),
   rangeSelector: document.querySelector("#range-selector"),
   rangeIndicator: document.querySelector("#range-indicator"),
   rangeButtons: [...document.querySelectorAll("[data-range]")],
@@ -110,17 +113,29 @@ function getBerlinDateTimeParts(value) {
 function shouldShowWorkflowDelayWarning(lastSuccessfulCheck, now = new Date()) {
   const current = getBerlinDateTimeParts(now);
   if (Number(current.hour) < WORKFLOW_DEADLINE_HOUR) return false;
-  if (!isValidTimestamp(lastSuccessfulCheck)) return true;
 
+  return !isSuccessfulCheckToday(lastSuccessfulCheck, now);
+}
+
+function isSuccessfulCheckToday(lastSuccessfulCheck, now = new Date()) {
+  if (!isValidTimestamp(lastSuccessfulCheck)) return false;
+
+  const current = getBerlinDateTimeParts(now);
   const lastCheck = getBerlinDateTimeParts(new Date(lastSuccessfulCheck));
-  return [lastCheck.year, lastCheck.month, lastCheck.day].join("-") !==
+  return [lastCheck.year, lastCheck.month, lastCheck.day].join("-") ===
     [current.year, current.month, current.day].join("-");
 }
 
+function stopWorkflowStatusPolling() {
+  if (workflowStatusTimer === null) return;
+  window.clearInterval(workflowStatusTimer);
+  workflowStatusTimer = null;
+}
+
 function updateWorkflowDelayWarning() {
-  elements.workflowDelayWarning.hidden = !shouldShowWorkflowDelayWarning(
-    state.dataset?.lastSuccessfulCheck,
-  );
+  const lastSuccessfulCheck = state.dataset?.lastSuccessfulCheck;
+  elements.workflowDelayWarning.hidden = !shouldShowWorkflowDelayWarning(lastSuccessfulCheck);
+  if (isSuccessfulCheckToday(lastSuccessfulCheck)) stopWorkflowStatusPolling();
 }
 
 async function pollWorkflowStatus() {
@@ -343,7 +358,7 @@ function renderDashboard() {
   elements.content.hidden = false;
 
   renderChart();
-  renderTable(observations);
+  renderTableOnDemand();
 }
 
 function filterObservations(observations, range) {
@@ -594,6 +609,17 @@ function renderTable(observations) {
   );
 }
 
+function renderTableOnDemand() {
+  if (!elements.dataTableDetails.open || !state.dataset || renderedTableDataset === state.dataset) {
+    return;
+  }
+
+  renderTable(state.dataset.observations);
+  renderedTableDataset = state.dataset;
+}
+
+elements.dataTableDetails.addEventListener("toggle", renderTableOnDemand);
+
 elements.rangeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.range = button.dataset.range;
@@ -648,4 +674,7 @@ if ("ResizeObserver" in window && elements.chart) {
 
 elements.retryButton.addEventListener("click", loadData);
 loadData();
-window.setInterval(pollWorkflowStatus, WORKFLOW_STATUS_POLL_INTERVAL_MS);
+workflowStatusTimer = window.setInterval(
+  pollWorkflowStatus,
+  WORKFLOW_STATUS_POLL_INTERVAL_MS,
+);
