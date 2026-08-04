@@ -57,6 +57,7 @@ const elements = {
   errorCopy: document.querySelector("#error-copy"),
   errorLastSuccess: document.querySelector("#error-last-success"),
   retryButton: document.querySelector("#retry-button"),
+  rateRow: document.querySelector(".rate-row"),
   currentRate: document.querySelector("#current-rate"),
   referenceDate: document.querySelector("#reference-date"),
   lastSuccessfulCheck: document.querySelector("#last-successful-check"),
@@ -204,7 +205,7 @@ function classifyRate(rate) {
     label: "Positive Rendite",
     title: "Die laufende Rendite ist positiv.",
     copy: "Über 0,25 % bleibt nach der vereinfachten Kostenschätzung ein positiver laufender Renditebeitrag.",
-    marker: 88,
+    marker: 94,
   };
 }
 
@@ -331,7 +332,7 @@ function renderDashboard() {
 
   elements.currentRate.textContent = formatRate(latest.rate);
   if (!hasRevealedCurrentRate) {
-    elements.currentRate.classList.add("rate-reveal");
+    elements.rateRow.classList.add("rate-reveal");
     hasRevealedCurrentRate = true;
   }
   elements.referenceDate.textContent = formatDate(state.dataset.referenceDate);
