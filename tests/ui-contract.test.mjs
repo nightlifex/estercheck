@@ -14,6 +14,18 @@ test("dashboard keeps one concise information hierarchy and public trust links",
   assert.match(html, /€STR-Stand: <strong id="reference-date"/);
   assert.match(html, /id="last-successful-check"/);
   assert.match(html, /Geschätzte Geldmarkt-ETF-Rendite/);
+  assert.match(html, /class="card-kicker">Orientierung</);
+  assert.doesNotMatch(html, /Optionale Orientierung/);
+  assert.doesNotMatch(html, />Quelle und Hinweise</);
+  assert.match(html, /id="legal-title" class="legal-title">Rechtliches</);
+  assert.equal(
+    html.match(/Unabhängige Website; keine Verbindung zur EZB oder zu Xtrackers\./g)?.length,
+    1,
+  );
+  assert.ok(
+    html.indexOf("Unabhängige Website; keine Verbindung zur EZB oder zu Xtrackers.") >
+      html.indexOf('<aside class="legal-notice"'),
+  );
   assert.match(html, /Die dargestellten Berechnungen dienen ausschließlich der allgemeinen Information/);
   assert.match(html, /data-range="1826" aria-pressed="false">5 Jahre</);
   assert.match(html, /class="scale-values"/);
@@ -31,6 +43,10 @@ test("dashboard keeps one concise information hierarchy and public trust links",
       html.indexOf('<section class="source-panel"'),
   );
   assert.ok(html.indexOf('<aside class="legal-notice"') > html.indexOf('<footer class="site-footer"'));
+  assert.match(
+    html,
+    /Unabhängige Visualisierung\s*<span aria-hidden="true">·<\/span>\s*<a href="https:\/\/github\.com\/nightlifex\/estercheck"/,
+  );
   assert.ok(html.indexOf('id="workflow-delay-warning"') > html.indexOf('<aside class="legal-notice"'));
   assert.match(
     html,
@@ -149,5 +165,9 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   assert.match(
     styles,
     /\.scale-values span:nth-child\(3\),\s*\.scale-labels span:nth-child\(3\)\s*\{\s*text-align: center/,
+  );
+  assert.match(
+    styles,
+    /\.scale-values span:nth-child\(3\),\s*\.scale-labels span:nth-child\(3\)[^}]+transform: translateX\(-0\.6rem\)/,
   );
 });
