@@ -168,6 +168,10 @@ test("client keeps a valid fallback and exposes interactive chart details", asyn
   );
   assert.match(
     styles,
-    /\.scale-values span:nth-child\(3\),\s*\.scale-labels span:nth-child\(3\)[^}]+transform: translateX\(-0\.6rem\)/,
+    /\.scale-values span:nth-child\(3\),\s*\.scale-labels span:nth-child\(3\)[^}]+transform: translateX\(-3\.6rem\)/,
+  );
+  assert.match(
+    styles,
+    /@media \(max-width: 1280px\)[^}]+\.scale-values span:nth-child\(3\),\s*\.scale-labels span:nth-child\(3\)[^}]+transform: translateX\(-2rem\)/,
   );
 });
