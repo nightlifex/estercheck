@@ -113,6 +113,36 @@ test("metadata and favicon paths remain relative for GitHub Pages", async () => 
   assert.match(server, /"\.webmanifest": "application\/manifest\+json; charset=utf-8"/);
 });
 
+test("typography keeps financial metrics prominent and numerically stable", async () => {
+  const styles = await readFile(stylesUrl, "utf8");
+
+  assert.match(styles, /--radius-lg: 16px/);
+  assert.match(styles, /--radius-md: 12px/);
+  assert.match(styles, /--radius-sm: 8px/);
+  assert.match(styles, /--space-section: clamp\(3rem, 4vw, 4rem\)/);
+  assert.match(styles, /--font-size-heading: clamp\(1\.35rem, 1\.8vw, 1\.65rem\)/);
+  assert.match(styles, /--font-size-metric: clamp\(6rem, 11vw, 10rem\)/);
+  assert.match(styles, /--font-size-scale: 0\.625rem/);
+  assert.match(styles, /body\s*\{[^}]+min-width: 0/);
+
+  const numericRule = styles.match(
+    /\.current-rate,\s*\.rate-unit,\s*\.rate-stand,\s*\.rate-check,\s*\.rate-change,\s*\.scale-values,\s*\.chart-axis-label,\s*\.chart-tooltip,\s*\.chart-footer,\s*table,\s*\.etf-value,\s*\.etf-formula\s*\{([^}]+)\}/,
+  );
+  assert.ok(numericRule);
+  assert.match(numericRule[1], /font-variant-numeric: tabular-nums/);
+  assert.match(numericRule[1], /font-feature-settings: "tnum"/);
+
+  assert.match(
+    styles,
+    /\.current-rate\s*\{[^}]+font-size: var\(--font-size-metric\)[^}]+font-weight: 760[^}]+line-height: 0\.78/,
+  );
+  assert.match(styles, /\.card\s*\{[^}]+border-radius: var\(--radius-lg\)/);
+  assert.match(styles, /\.chart-card\s*\{\s*margin-top: var\(--space-section\)/);
+  assert.match(styles, /\.etf-card\s*\{[^}]+margin-top: var\(--space-section\)/);
+  assert.match(styles, /\.source-panel\s*\{\s*margin-top: var\(--space-section\)/);
+  assert.doesNotMatch(styles, /--radius-(?:lg|md): (?:28|20)px/);
+});
+
 test("client keeps a valid fallback and exposes interactive chart details", async () => {
   const app = await readFile(appUrl, "utf8");
   const styles = await readFile(stylesUrl, "utf8");
