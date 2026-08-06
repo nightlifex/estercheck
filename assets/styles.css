@@ -425,6 +425,7 @@ h2 {
 .scale-values span:nth-child(3),
 .scale-labels span:nth-child(3) {
   text-align: center;
+  transform: translateX(-0.6rem);
 }
 
 .scale-values {
@@ -898,7 +899,8 @@ code {
   display: flex;
   gap: 1rem;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   min-height: 92px;
   color: var(--muted);
   font-size: 0.75rem;
@@ -918,9 +920,21 @@ code {
   border-top: 1px solid rgba(202, 255, 220, 0.07);
 }
 
+.legal-title {
+  margin: 0 0 0.55rem;
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
 .legal-notice p {
   max-width: 960px;
   margin: 0;
+}
+
+.legal-notice p + p {
+  margin-top: 0.4rem;
 }
 
 .workflow-delay-warning {
@@ -1089,7 +1103,6 @@ code {
   }
 
   .chart-footer,
-  .site-footer,
   .error-panel {
     align-items: flex-start;
     flex-direction: column;
