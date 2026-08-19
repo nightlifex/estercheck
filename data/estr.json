@@ -8,16 +8,16 @@
     "officialPageUrl": "https://www.ecb.europa.eu/stats/financial_markets_and_interest_rates/euro_short-term_rate/html/index.en.html"
   },
   "unit": "percent",
-  "publicationDate": "2026-08-18",
+  "publicationDate": "2026-08-19",
   "publicationTime": "08:00",
-  "referenceDate": "2026-08-17",
-  "lastSuccessfulCheck": "2026-08-18T07:03:48.418Z",
-  "lastDataChange": "2026-08-18T07:03:48.418Z",
+  "referenceDate": "2026-08-18",
+  "lastSuccessfulCheck": "2026-08-19T07:04:53.471Z",
+  "lastDataChange": "2026-08-19T07:04:53.471Z",
   "current": {
-    "rate": 2.187,
-    "previousRate": 2.189,
-    "changePercentagePoints": -0.002,
-    "estimatedNetYield": 2.172,
+    "rate": 2.188,
+    "previousRate": 2.187,
+    "changePercentagePoints": 0.001,
+    "estimatedNetYield": 2.173,
     "classification": "positive"
   },
   "observations": [
@@ -7064,6 +7064,10 @@
     {
       "date": "2026-08-17",
       "rate": 2.187
+    },
+    {
+      "date": "2026-08-18",
+      "rate": 2.188
     }
   ]
 }
